@@ -1,0 +1,169 @@
+---
+title: "Logistic_models_OK"
+author: "Stijn Bruneel"
+date: '2022-10-05'
+output: word_document
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r include=FALSE}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+```
+
+```{r include=FALSE}
+
+source("./source/functions/log_model_state.R")
+source("./source/functions/plot_histogram_length_weight_distribution.R")
+source("./source/functions/run_chi_squared.R")
+source("./source/functions/stats_data_level1.R")
+source("./source/functions/stats_data_level2a.R")
+source("./source/functions/rmse.R")
+```
+
+```{r include=FALSE}
+df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f_stat_level2a <- read.csv("./data/internal/df_OK_f_stat_level2a.csv")
+```
+
+```{r include=FALSE}
+specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+```
+
+## Methodology: Length distributions
+
+Methods: To assess whether the length distributions differ between scenarios a Kruskal-Wallis test was applied. If a significant difference (p\<0.05) between any of the scenarios was found, post-hoc pairwise Wilcoxon ranks sum tests with Bonferroni correction were applied.
+
+```{r include=FALSE}
+p=list()
+k=0
+for (i in specieslist_OK){
+  k=k+1
+  print(i)
+  krusk<-kruskal.test(Length ~ Pump_type_rpm, data = df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),])
+  print(krusk)
+  p[[k]]<-as.data.frame(pairwise.wilcox.test(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")], df_OK_f$Pump_type_rpm[which(df_OK_f$Species==i & df_OK_f$Control=="pump")],p.adjust.method = "bonferroni")$p.value)
+  #p[[k]][p[[k]]>0.05]=NA
+  print(p[[k]] %>% kable())
+  #corrplot::corrplot(as.matrix(p[[k]]),cl.lim = c(0, 0.05), is.corr = FALSE,main=i)
+}
+```
+
+## Results: Length distributions
+
+```{r echo=FALSE}
+print(krusk)
+p[[1]] %>% kable(digits=3,caption="Post-hoc pairwise Wilcoxon ranks sum tests with Bonferroni correction for differences in length distributions between scenarios for roach")
+p[[2]] %>% kable(digits=3,caption="Post-hoc pairwise Wilcoxon ranks sum tests with Bonferroni correction for differences in length distributions between scenarios for eel")
+```
+
+Results: For both roach and eel there seem to be some significant differences in length distribution between scenarios
+
+```{r include=FALSE}
+# Chi-squared test for state OK
+df_OK_f_stat_level2a_wide<-read.csv("./data/internal/df_OK_f_stat_level2a_wide.csv")[,-c(1)]
+df_OK_f_stat_level2a_wide_species_pump<-read.csv("./data/internal/df_OK_f_stat_level2a_wide_species_pump.csv")[,-1]
+df_OK_f_stat_level2a_wide_freq_pump<-read.csv("./data/internal/df_OK_f_stat_level2a_wide_freq_pump.csv")[,-1]
+```
+
+## Methodology: Mortality
+
+Methods: to assess whether the chance of being alive or dead is independent from the considered factors (H0), chi-squared tests are run.
+
+## Results: Mortality
+
+```{r include=FALSE}
+chi1=run_chi_squared(df_OK_f_stat_level2a_wide,"Species, rpm and pump type",1)
+```
+
+Results: There seem to be quite some significant differences between scenarios.
+
+```{r echo=FALSE}
+chi1[order(chi1$p.adj.Chisq),] %>% kable(row.names = FALSE,caption="chi-squared tests to assess differences in mortality between scenarios (species-screw-rpm-control)")
+```
+
+```{r include=FALSE}
+chi2=run_chi_squared(df_OK_f_stat_level2a_wide_species_pump,"Species and pump type",1)
+```
+
+```{r echo=FALSE}
+chi2[order(chi2$p.adj.Chisq),] %>% kable(row.names = FALSE,caption="chi-squared tests to assess differences in mortality between scenarios (species-screw-control)")
+```
+
+Results: There seem to be quite some significant differences between scenarios.
+
+```{r include=FALSE}
+chi3=run_chi_squared(df_OK_f_stat_level2a_wide_freq_pump,"rpm and pump type",1)
+```
+
+```{r echo=FALSE}
+chi3[order(chi3$p.adj.Chisq),] %>% kable(row.names = FALSE,caption="chi-squared tests to assess differences in mortality between scenarios (screw-rpm-control)")
+```
+
+Results: There seem to be quite some significant differences between scenarios.
+
+```{r include=FALSE}
+chi4=list()
+k=0
+for (i in unique(df_OK_f_stat_level2a_wide$rpm)){
+  k=k+1
+  chi4[[k]]=run_chi_squared(df_OK_f_stat_level2a_wide[which(df_OK_f_stat_level2a_wide$rpm==i),],"Species and pump type",1)
+} #No need to add i=Control because all control animals were alive for all species. Including it generates an error.
+```
+
+Results: There seem to be quite some significant differences between scenarios.
+
+```{r include=FALSE}
+chi5=run_chi_squared(df_OK_f_stat_level2a_wide_freq_pump,"rpm and pump type",1)
+```
+
+Results: There seem to be quite some significant differences between scenarios.
+
+```{r include=FALSE}
+k=0
+chi6=list()
+for (i in specieslist_OK[1:2]){
+  k=k+1
+  chi6[[k]]=run_chi_squared(df_OK_f_stat_level2a_wide[which(df_OK_f_stat_level2a_wide$Species==i),],"rpm and pump type",1)
+  chi6[[k]][order(chi6[[k]]$p.adj.Chisq),] %>% kable()
+}
+```
+
+```{r echo=FALSE}
+chi6[[1]][order(chi6[[1]]$p.adj.Chisq),] %>% kable(row.names = FALSE,caption="chi-squared tests to assess differences in mortality between scenarios (screw-rpm-control) for eel")
+```
+
+```{r echo=FALSE, include=FALSE}
+chi6[[2]][order(chi6[[2]]$p.adj.Chisq),] %>% kable(row.names = FALSE,caption="chi-squared tests to assess differences in mortality between scenarios (screw-rpm-control) for roach")
+```
+
+Results:
+
+```{r eval=FALSE, include =FALSE}
+# Friedman-test for OK (non-parametric, unreplicated, blocks)
+as_tibble(stats_data_level2a(data=df_OK_f_stat_level2a,columns=c("rpm", "Pump_type", "State"))) %>% 
+  friedman_test(number_state_binom ~ State |rpn)
+
+as_tibble(stats_data_level2a(data=df_OK_f_stat_level2a,columns=c("Species", "Pump_type", "State"))) %>% 
+  friedman_test(number_state_binom ~ State |Species)
+
+for (i in specieslist_OK){
+  print(i)
+  print(as_tibble(df_OK_f_stat_level2a) %>% 
+    filter(Species == i) %>%
+    friedman_test(number_state_binom ~ State |rpn))
+}
+
+for (i in unique(df_OK_f_stat_level2a$rpm)){
+  print(i)
+  print(as_tibble(df_OK_f_stat_level2a) %>% 
+    filter(rpm == i) %>%
+    friedman_test(number_state_binom ~ State |Species))
+}
+```
+

@@ -1,0 +1,7 @@
+"","Species","Pump_type","Control","Alive","Dead"
+"1","bream","F/N","control",94,0
+"2","bream","F/N","pump",48,158
+"3","eel","F/N","control",92,0
+"4","eel","F/N","pump",512,0
+"5","roach","F/N","control",133,3
+"6","roach","F/N","pump",539,231

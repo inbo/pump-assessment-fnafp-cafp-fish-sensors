@@ -1,0 +1,147 @@
+---
+title: "Power_analysis_OK"
+author: "Stijn Bruneel"
+date: "22-11-2022"
+output: word_document
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r include=FALSE}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+```
+
+```{r}
+RUN=FALSE
+```
+
+```{r include=FALSE}
+source("./source/functions/log_model_state.R")
+source("./source/functions/plot_histogram_length_weight_distribution.R")
+source("./source/functions/run_chi_squared.R")
+source("./source/functions/stats_data_level1.R")
+source("./source/functions/stats_data_level2a.R")
+source("./source/functions/rmse.R")
+source("./source/functions/export_emmeans.R")
+source("./source/functions/round_df.R")
+```
+
+```{r include=FALSE}
+df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f$nState=NA
+df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
+df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
+df_OK_f$frpm <- as.factor(df_OK_f$rpm)
+```
+
+```{r include=FALSE}
+specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")
+```
+
+```{r include=FALSE}
+if (RUN==TRUE){
+  k=0
+  model.state.df.species.bern.PI<-list()
+  power<-list()
+  for(i in specieslist_OK[,2]){
+    k=k+1
+    tryCatch({
+    print(i)
+      
+    df_OK_f.temp <- df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),]  
+  
+    model.state.df.species.bern.PI[[k]]=stepAIC(glm(nState ~ Pump_type_rpm * Length, data = df_OK_f.temp, family = 'binomial'))
+    model.state.df.species.bern.PI[[k]]$formula
+    
+    fish<-c(5,10,20,30,40,50,60,70,80,90,100,125,150,175,200,300,500,750,1000,1250)
+    iter<-c(1:1000)
+    for (j in fish){
+      store = (matrix(rep(NA), ncol = 6, nrow = length(iter)*length(coef(model.state.df.species.bern.PI[[k]]))))
+      colnames(store)=c("Species","fish","iteration","Coeff","Est","P")
+      for (b in iter){
+        df_OK_f.temp.temp <- df_OK_f.temp %>% group_by(Pump_type_rpm) %>% slice_sample(n=j,replace=TRUE)
+        model.state.df.species.bern.PI.temp=glm(model.state.df.species.bern.PI[[k]]$formula, data = df_OK_f.temp.temp, family = 'binomial')
+        x=summary(model.state.df.species.bern.PI.temp)
+        row_selection=seq(from=1+(b-1)*length(model.state.df.species.bern.PI.temp$coefficients),to=b*length(model.state.df.species.bern.PI.temp$coefficients),by=1)
+        store[row_selection,1]=i
+        store[row_selection,2]=j
+        store[row_selection,3]=b
+        store[row_selection,4]=rownames(x$coefficients)
+        store[row_selection,c(5:6)]=c(x$coefficients[,c(1,4)])
+      }
+      filename=paste("./data/internal/power/power_",i,"_",j,"fish.csv",sep="")
+      write.csv(store,filename)
+    }
+    
+    }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  }
+}
+```
+
+```{r}
+filelist<-list.files("./data/internal/power/")
+for (i in 1:length(filelist)){
+  filename=paste("./data/internal/power/",filelist[i],sep="")
+  model=read.csv(filename)
+  if (i == 1){
+    fullmodel=model
+  }
+  if (i > 1){
+    fullmodel=rbind(fullmodel,model)
+  }
+}
+```
+
+```{r}
+fullmodel_average<-fullmodel %>%
+    dplyr::group_by(Species,fish,Coeff) %>%
+    dplyr::summarize(n_group=n(),Cases_below_p=sum(P < 0.05,na.rm=TRUE),Power=Cases_below_p/n_group)
+```
+
+```{r}
+p<-list()
+ggtitle.list<-c("Bream - Length","Bream - Scenario","Bream - Scenario:Length","Roach - Length","Roach - Scenario","Roach - Scenario:Length")
+k=0
+for (i in specieslist_OK[c(1:2),2]){
+  fullmodel_average.temp=fullmodel_average[which(fullmodel_average$Species==i),]
+  for (j in unique(fullmodel_average.temp$Coeff)){
+    k=k+1
+    fullmodel_average.plot=fullmodel_average.temp[which(fullmodel_average.temp$Coeff==j),]
+    g<-ggplot(data = fullmodel_average.plot,aes(x=fish,y=Power))
+    g<-g+geom_line(size=0.5)+geom_point()+ylim(0,1) + scale_x_continuous(breaks = round(seq(0, max(fullmodel_average.plot$fish), by = 100),1))
+    g<-g+xlab("Number of fish per scenario")+ylab("Statistical power") 
+    g<-g+ggtitle(paste(i,j)) 
+    g<-g+geom_path(data = data.frame(y = c(-Inf, 0.8, 0.8), x = c(approx(fullmodel_average.plot$Power, fullmodel_average.plot$fish, 0.8)$y, approx(fullmodel_average.plot$Power, fullmodel_average.plot$fish, 0.8)$y,-Inf)), aes(x, y), color = "red", linetype = 2)
+    g<-g + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    g<-g+ geom_text(x=700,y=0.3,label=paste(round(c(approx(fullmodel_average.plot$Power, fullmodel_average.plot$fish, 0.8)$y)),"fish required \n per scenario"),hjust=0)
+    p[[k]]<-g
+    print(g)
+  }
+}
+p[[2]]<-p[[2]]+ggtitle(ggtitle.list[1])
+p[[3]]<-p[[3]]+ggtitle(ggtitle.list[2])
+p[[4]]<-p[[4]]+ggtitle(ggtitle.list[3])
+p[[6]]<-p[[6]]+ggtitle(ggtitle.list[4])
+p[[7]]<-p[[7]]+ggtitle(ggtitle.list[5])
+p[[8]]<-p[[8]]+ggtitle(ggtitle.list[6])
+
+pdf("./figures/power.pdf")
+ggarrange(p[[2]],p[[6]],p[[3]],p[[7]],p[[4]],p[[8]],ncol=2,nrow=3)
+dev.off()
+```
+
+```{r}
+s <- fullmodel_average %>% 
+  filter(Species!="eel") %>%
+  group_by(Species,Coeff) %>%
+  filter(abs(Power - 0.8) == min(abs(Power - 0.8)))
+  
+s <- s[,c("Species","fish","Coeff")]  
+
+s_wide <- spread(s, Species, fish)
+
+s_wide
+```

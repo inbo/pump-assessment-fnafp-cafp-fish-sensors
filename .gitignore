@@ -4,7 +4,6 @@
 
 # Session Data files
 .RData
-.RDataTmp
 
 # User-specific files
 .Ruserdata
@@ -39,11 +38,15 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# word docs
+*.docx
+!Meetings.docx
 
-# translation temp files
-po/*~
+#Exclude all internal data
+data/internal/Groot_Schijn*
+data/internal/Oude_Kale*
+data/internal/Ham*
 
-# RStudio Connect folder
-rsconnect/
+#Exclude all figures
+/figures*
+*.tiff

@@ -1,0 +1,355 @@
+---
+title: "Multinomial_OK"
+author: "Stijn Bruneel"
+date: '2022-10-08'
+output: word_document
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r include=FALSE}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+```
+
+```{r include=FALSE}
+source("./source/functions/log_model_state.R")
+source("./source/functions/plot_histogram_length_weight_distribution.R")
+source("./source/functions/run_chi_squared.R")
+source("./source/functions/stats_data_level1.R")
+source("./source/functions/stats_data_level2a.R")
+source("./source/functions/rmse.R")
+source("./source/functions/export_emmeans.R")
+source("./source/functions/round_df.R")
+```
+
+```{r include=FALSE}
+Language<-"english"
+df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f$Frequency<-as.factor(df_OK_f$Frequency)
+df_OK_f$frpm <- as.factor(df_OK_f$rpm)
+```
+
+```{r include=FALSE}
+df_OK_f_long_type <- read.csv("./data/internal/df_OK_f_long_type.csv")
+df_OK_f_long_type<-df_OK_f_long_type[-which(df_OK_f_long_type$Value==0 | df_OK_f_long_type$Injury=="Injury_type_dead"),]
+if (exists("Language")){
+  if (Language=="dutch"){
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_no")] = "geen"
+    df_OK_f_long_type["Injury"][df_OK_f_long_type["Injury"] == "Injury_type_no"] <- "geen"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_slight")] <- "licht"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_severe")] <- "zwaar"
+  }
+  if (Language=="english"){
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_no")] = "no"
+    df_OK_f_long_type["Injury"][df_OK_f_long_type["Injury"] == "Injury_type_no"] <- "no"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_slight")] <- "slight"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_severe")] <- "severe"
+    df_OK_f_long_type$Injury <- factor(df_OK_f_long_type$Injury, levels=c("no", "slight", "severe"))
+  }
+}
+df_OK_f_long_type$Injury<-as.factor(df_OK_f_long_type$Injury)
+df_OK_f_long_type$Control<-as.factor(df_OK_f_long_type$Control)
+df_OK_f_long_type$Frequency<-as.factor(df_OK_f_long_type$Frequency)
+df_OK_f_long_type$frpm <- as.factor(df_OK_f_long_type$rpm)
+df_OK_f_long <- read.csv("./data/internal/df_OK_f_long.csv")
+df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
+df_OK_f_long$Injury<-as.factor(df_OK_f_long$Injury)
+df_OK_f_long$Control<-as.factor(df_OK_f_long$Control)
+df_OK_f_long$Frequency<-as.factor(df_OK_f_long$Frequency)
+df_OK_f_long$frpm <- as.factor(df_OK_f_long$rpm)
+```
+
+```{r include=FALSE}
+specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+```
+
+## Methodology
+
+Methods: To identify the factors affecting injuries, multinomial models with as response the original injury class (1, 2.1, 2.2, etc.) or the severity injury class (no, slight and severe) were constructed. To obtain the most parsimonious model, step-wise model selection with AIC as selection criterion, was performed.
+
+## Results
+
+### All three species + severity injury class
+
+```{r include=FALSE}
+# multinom for injury (aggregated) OK
+form.state.df.multinom <- as.formula(Injury ~ Species * Pump_type_rpm * Length)
+#df_OK_f_long_type$Injury <- relevel(df_OK_f_long_type$Injury, ref = "Injury_type_no")
+model.injury.df.multinom=stepAIC(multinom(formula = form.state.df.multinom, data = df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump"),]))
+```
+
+```{r echo=FALSE}
+summary(model.injury.df.multinom)$coefficients %>% kable(caption="Coefficients of the model for both species + severity injury class")
+z <- summary(model.injury.df.multinom)$coefficients/summary(model.injury.df.multinom)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1)) * 2 
+p %>% kable(caption="p-values of the model for both species + severity injury class")
+exp(coef(model.injury.df.multinom)) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+
+```{r eval =FALSE, fig.cap="Probability of type of injury occuring in function of length and screw type"}
+temp <- df_OK_f_long_type %>% tidyr::expand(Species,Pump_type_rpm,full_seq(Length,1))
+colnames(temp)[3] <- "Length"
+temp.pp<-cbind(temp,predict(model.injury.df.multinom, newdata = temp, "probs"))
+temp.pp$Species_Pump_type_rpm <- paste(temp.pp$Species,temp.pp$Pump_type_rpm)
+lpp <- melt(temp.pp, id.vars = c("Species_Pump_type_rpm", "Length"), value.name = "probability")
+ggplot(lpp, aes(x = Length, y = probability, colour = Species_Pump_type_rpm)) + geom_point() + facet_grid(variable ~., scales = "free")
+```
+
+### Three species seperatly + severity injury class (without considering length)
+
+```{r}
+# multinom for injury (aggregated) OK
+model.injury.df.multinom<-list()
+k=0
+sum.mult=list()
+z=list()
+p=list()
+l=list()
+for(i in specieslist_OK){
+  print(i)
+  k=k+1
+  form.state.df.multinom <- as.formula(Injury ~ Pump_type_rpm)
+  model.injury.df.multinom[[k]] <- (multinom(formula = form.state.df.multinom, data = df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species==i),]))
+  sum.mult[[k]]<-summary(model.injury.df.multinom[[k]])
+  z[[k]] <- sum.mult[[k]]$coefficients/sum.mult[[k]]$standard.errors
+  p[[k]] <- (1 - pnorm(abs(z[[k]]), 0, 1)) * 2
+  emm_multinom1<-emmeans(model.injury.df.multinom[[k]], pairwise~Injury|Pump_type_rpm, type="response")
+  print(emm_multinom1)
+  print(plot(emm_multinom1,PIs=FALSE,CI=TRUE,comparisons=FALSE,adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw(base_size=18)+xlab("Probability")+ylab("Injury"))
+  export.emmeans(emm_multinom1,"Oude_Kale","emm_multinom_without_length_per_scenario",i)
+  emm_multinom2<-emmeans(model.injury.df.multinom[[k]], pairwise~Pump_type_rpm|Injury, type="response")
+  print(emm_multinom2)
+  pdf(paste0("./figures/additional/mult_model_",i,".pdf"))
+  print(plot(emm_multinom2,PIs=FALSE,CI=TRUE,comparisons=FALSE,adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw(base_size=18)+xlab("Probability")+ylab("Scenario")+xlim(-0.05,1.05))
+  dev.off()
+  export.emmeans(emm_multinom2,"Oude_Kale","emm_multinom_without_length_per_injury_type",i)
+  l[[k]]<-plot(emm_multinom2,PIs=FALSE,CI=TRUE,comparisons=FALSE,adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw(base_size=18)+xlab("Probability")+ylab("Scenario")+xlim(-0.05,1.05)
+}
+pdf("./figures/additional/mult_model_bream_roach_eel.pdf",width=10,height=10)
+ggarrange(l[[1]],l[[2]],l[[3]],nrow=2,ncol=2,labels=c("Bream","Roach","Eel"))
+dev.off()
+```
+
+### Three species seperatly + severity injury class (with considering length if retained)
+
+```{r}
+# multinom for injury (aggregated) OK
+model.injury.df.multinom<-list()
+emm_multinom1_with_length<-list()
+emm_multinom2_with_length<-list()
+emm_multinom1_plot_with_length<-list()
+emm_multinom2_plot_with_length<-list()
+k=0
+sum.mult=list()
+z_with_length=list()
+p_with_length=list()
+for(i in specieslist_OK){
+  print(i)
+  k=k+1
+  form.state.df.multinom <- as.formula(Injury ~ Pump_type_rpm * Length)
+  if (length(unique(df_OK_f_long_type$Injury[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species==i)]))>2){
+    model.injury.df.multinom[[k]] <- stepAIC(multinom(formula = form.state.df.multinom, data = df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species==i),]))
+    sum.mult[[k]]<-summary(model.injury.df.multinom[[k]])
+    z_with_length[[k]] <- sum.mult[[k]]$coefficients/sum.mult[[k]]$standard.errors
+    p_with_length[[k]] <- (1 - pnorm(abs(z_with_length[[k]]), 0, 1)) * 2
+    emm_multinom1_with_length[[k]]<-emmeans(model.injury.df.multinom[[k]], pairwise~Injury|Pump_type_rpm, type="response")
+    print(emm_multinom1_with_length[[k]])
+    emm_multinom1_plot_with_length[[k]]<-plot(emm_multinom1_with_length[[k]],PIs=FALSE,CI=TRUE,comparisons=FALSE,colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Probability")+ylab("Injury")
+    print(emm_multinom1_plot_with_length[[k]])
+    pdf(paste("./figures/additional/emm_multinom1_plot_",i,".pdf",sep=""))
+    print(emm_multinom1_plot_with_length[[k]])
+    dev.off()
+    export.emmeans(emm_multinom1_with_length[[k]],"Oude_Kale","emm_multinom_with_length_per_scenario",i)
+    emm_multinom2_with_length[[k]]<-emmeans(model.injury.df.multinom[[k]], pairwise~Pump_type_rpm|Injury, type="response")
+    print(emm_multinom2_with_length[[k]])
+    emm_multinom2_plot_with_length[[k]]<-plot(emm_multinom2_with_length[[k]],PIs=FALSE,CI=TRUE,comparisons=FALSE,colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Probability")+ylab("Scenario")
+    print(emm_multinom2_plot_with_length[[k]])
+    pdf(paste("./figures/additional/emm_multinom2_plot_",i,".pdf",sep=""))
+    print(emm_multinom2_plot_with_length[[k]])
+    dev.off()
+    export.emmeans(emm_multinom2_with_length[[k]],"Oude_Kale","emm_multinom_with_length_per_injury_type",i)
+  }
+  if (length(unique(df_OK_f_long_type$Injury[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species==i)]))==2){
+    model.injury.df.multinom[[k]] <- log.model.state(form = form.state.df.multinom, data = df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species==i),],type="simple")
+emm_multinom2_with_length[[k]]<-emmeans(model.injury.df.multinom[[k]], pairwise~Pump_type_rpm, type="response")
+    print(emm_multinom2_with_length[[k]])
+    emm_multinom2_plot_with_length[[k]]<-plot(emm_multinom2_with_length[[k]],PIs=FALSE,CI=TRUE,comparisons=FALSE,colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Probability")+ylab("Scenario")
+    print(emm_multinom2_plot_with_length[[k]])
+    pdf(paste("./figures/additional/emm_multinom2_plot_",i,".pdf",sep=""))
+    print(emm_multinom2_plot_with_length[[k]])
+    dev.off()
+    export.emmeans(emm_multinom2_with_length[[k]],"Oude_Kale","emm_multinom_with_length_per_injury_type",i)
+  }
+}
+pdf("./figures/manuscript/mult_model_bream_roach_eel_length.pdf",width=10,height=10)
+ggarrange(emm_multinom2_plot_with_length[[1]],emm_multinom2_plot_with_length[[2]],emm_multinom2_plot_with_length[[3]],nrow=2,ncol=2,labels=c("Bream","Roach","Eel"))
+dev.off()
+```
+
+For bream there was no significant difference in the number of fish without an injury between different rotation regimes. Eventhough the number of injuries might not have been significantly different between the two rotation regimes. Severe injuries were with marginal signficance more likely at higher rotations, while sligth injuries were with marginal signifcance more likley at lower rotations. The same pattern was found for roach with the exception that the higher risk of severe injuries at higher rotations was not significant. For eel there were no severe injuries and the likeliness of slight injuries was not affectd by the number of rotations. 
+
+### Model assumptions for three species seperatly + severity injury class (with considering length if retained)
+
+```{r}
+# Check assumptions for multimod via logistic regressions
+for (k in specieslist_OK[1]){
+  print(k)
+  for (i in unique(df_OK_f_long_type$Injury)){
+    print(paste(k,i))
+    df_OK_f_long_type.temp<-df_OK_f_long_type[which(df_OK_f_long_type$Species==k),]
+    df_OK_f_long_type.temp$nInjury=NA
+    df_OK_f_long_type.temp$nInjury[which(df_OK_f_long_type.temp$Injury==i)]=1
+    df_OK_f_long_type.temp$nInjury[which(df_OK_f_long_type.temp$Injury!=i)]=0
+    model.assumptions<-log.model.state(nInjury ~ Pump_type_rpm * Length, df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Control=="pump"),],"simple",AIC=TRUE)
+    df_OK_f_long_type.temp$pred=predict(model.assumptions,df_OK_f_long_type.temp,type="response")
+    df_OK_f_long_type.temp$logit=log(df_OK_f_long_type.temp$pred/(1-df_OK_f_long_type.temp$pred))
+  
+    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="F/N 468"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
+    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="F/N 550"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
+  }
+}
+```
+
+The model assumptions were met. 
+
+#### Bream: severity injury class
+
+```{r echo=FALSE}
+k=1
+sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for bream + severity injury class")
+p_with_length[[k]] %>% kable(caption="p-values of the model for bream + severity injury class")
+exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+Although for bream there was no significant difference between rotation regimes in the number of fish with no injuries, slight injuries or severe injuries, longer fish were significantly more likely to get severe and slight injuries. 
+
+```{r fig.cap="Probability of type of injury occuring in function of length and screw type for bream"}
+temp <- df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species=="bream"),] %>% tidyr::expand(Pump_type_rpm,full_seq(round(Length),1))
+colnames(temp)[2] <- "Length"
+temp.pp<-cbind(temp,predict(model.injury.df.multinom[[1]], newdata = temp, "probs"))
+lpp <- melt(temp.pp, id.vars = c("Pump_type_rpm", "Length"), value.name = "probability")
+a<-ggplot(lpp, aes(x = Length, y = probability, colour = Pump_type_rpm)) + geom_line(size=2) + facet_grid(variable ~., scales = "free") + theme_bw() + ylim(0,1)
+a
+pdf("./figures/manuscript/mult_model_bream_length.pdf")
+a
+dev.off()
+```
+
+#### Roach: severity injury class
+
+```{r echo=FALSE}
+k=2
+sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for roach + severity injury class")
+p_with_length[[k]] %>% kable(caption="p-values of the model for roach + severity injury class")
+exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+Although for roach there was no significant difference between rotation regimes in the number of fish with no injuries, slight injuries or severe injuries, longer fish were significantly more likely to get severe injuries. 
+
+```{r fig.cap="Probability of type of injury occuring in function of length and screw type for roach"}
+temp <- df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species=="roach"),] %>% tidyr::expand(Pump_type_rpm,full_seq(Length,1))
+colnames(temp)[2] <- "Length"
+temp.pp<-cbind(temp,predict(model.injury.df.multinom[[2]], newdata = temp, "probs"))
+lpp <- melt(temp.pp, id.vars = c("Pump_type_rpm", "Length"), value.name = "probability")
+b<-ggplot(lpp, aes(x = Length, y = probability, colour = Pump_type_rpm)) + geom_line(size=2) + facet_grid(variable ~., scales = "free") + theme_bw() + ylim(0,1)
+b
+pdf("./figures/manuscript/mult_model_roach_length.pdf")
+b
+dev.off()
+```
+
+#### Eel: severity injury class
+
+```{r echo=FALSE}
+k=3
+summary(model.injury.df.multinom[[k]])
+```
+Neither number of rotations nor length had a significant effect on whether eel would be injured or not.
+
+```{r fig.cap="Probability of type of injury occuring in function of length and screw type for eel"}
+temp <- df_OK_f_long_type[which(df_OK_f_long_type$Control=="pump" & df_OK_f_long_type$Species=="eel"),] %>% tidyr::expand(Pump_type_rpm,full_seq(Length,1))
+colnames(temp)[2] <- "Length"
+temp.pp<-cbind(temp,predict(model.injury.df.multinom[[3]], newdata = temp, "response"))
+lpp <- melt(temp.pp, id.vars = c("Pump_type_rpm", "Length"), value.name = "probability")
+ggplot(lpp, aes(x = Length, y = probability, colour = Pump_type_rpm)) + geom_point() + facet_grid(variable ~., scales = "free") + theme_bw()
+```
+
+### All three species + injury class
+
+```{r include=FALSE}
+# multinom for injury OK
+form.state.df.multinom <- as.formula(Injury ~ Species * Pump_type_rpm * Length)
+df_OK_f_long$Injury <- relevel(df_OK_f_long$Injury, ref = "Class_1")
+model.injury.df.multinom=stepAIC(multinom(formula = form.state.df.multinom, data = df_OK_f_long[which(df_OK_f_long$Control=="pump"),]))
+```
+
+```{r echo=FALSE}
+summary(model.injury.df.multinom)$coefficients %>% kable(caption="Coefficients of the model for all three species + original injury class")
+z <- summary(model.injury.df.multinom)$coefficients/summary(model.injury.df.multinom)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1)) * 2 
+p %>% kable(caption="p-values of the model for all three species + original injury class")
+exp(coef(model.injury.df.multinom)) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+
+### Three species seperatly + injury class (with considering length if retained)
+
+```{r include=FALSE}
+# multinom for injury OK
+model.injury.df.multinom<-list()
+k=0
+sum.mult=list()
+z=list()
+p=list()
+for(i in c("bream")){
+  print(i)
+  k=k+1
+  form.state.df.multinom <- as.formula(Injury ~ Pump_type_rpm * Length)
+  model.injury.df.multinom[[k]] <- stepAIC(multinom(formula = form.state.df.multinom, data = df_OK_f_long[which(df_OK_f_long$Control=="pump" & df_OK_f_long$Species==i),]))
+ sum.mult[[k]]<-summary(model.injury.df.multinom[[k]])
+  print(sum.mult[[k]])
+  z[[k]] <- sum.mult[[k]]$coefficients/sum.mult[[k]]$standard.errors
+  p[[k]] <- (1 - pnorm(abs(z[[k]]), 0, 1)) * 2
+  print(p[[k]])
+}
+```
+
+```{r echo=FALSE}
+k=1
+sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for bream + original injury class")
+p[[k]] %>% kable(caption="p-values of the model for bream + original injury class")
+exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+```{r eval=FALSE}
+k=1
+emm_multinom1<-emmeans(model.injury.df.multinom[[k]], pairwise~Injury|Pump_type_rpm, type="response")
+print(emm_multinom1)
+emm_multinom1_plot_with_length[[k]]<-plot(emm_multinom1,PIs=FALSE,CI=TRUE,comparisons=FALSE,adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw(base_size=18)+xlab("Probability")+ylab("Injury")
+  print(emm_multinom1_plot_with_length[[k]])
+  
+pdf("./figures/manuscript/mult_model_bream_length_injury.pdf",width=10,height=10)
+ggarrange(emm_multinom1_plot_with_length[[k]],nrow=1,ncol=1,labels=c("Bream"))
+dev.off()
+  
+emm_multinom2_with_length[[k]]<-emmeans(model.injury.df.multinom[[k]], pairwise~Pump_type_rpm|Injury, type="response")
+print(emm_multinom2_with_length[[k]])
+emm_multinom2_plot_with_length[[k]]<-plot(emm_multinom2_with_length[[k]],PIs=FALSE,CI=TRUE,comparisons=FALSE,colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Probability")+ylab("Scenario")
+print(emm_multinom2_plot_with_length[[k]])
+```
+
+```{r echo=FALSE}
+k=2
+sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for roach + original injury class")
+p[[k]] %>% kable(caption="p-values of the model for roach + original injury class")
+exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+
+```{r echo=FALSE}
+k=3
+sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for eel + original injury class")
+p[[k]] %>% kable(caption="p-values of the model for eel + original injury class")
+exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
+```
+

@@ -1,0 +1,153 @@
+---
+title: "Trees_and_Forests_OK"
+author: "Stijn Bruneel"
+date: '2022-10-05'
+output: word_document
+---
+
+```{r setup, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+```
+
+```{r}
+source("./source/functions/log_model_state.R")
+source("./source/functions/plot_histogram_length_weight_distribution.R")
+source("./source/functions/run_chi_squared.R")
+source("./source/functions/stats_data_level1.R")
+source("./source/functions/stats_data_level2a.R")
+source("./source/functions/rmse.R")
+```
+
+```{r}
+df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_n_ad <- read.csv("./data/internal/df_OK_n_ad.csv")
+df_OK_f <- bind_rows(df_OK_f,df_OK_n_ad)
+df_OK_f <- df_OK_f[which(df_OK_f$Species=="roach"),]
+
+df_OK_f$Frequency<-as.factor(df_OK_f$Frequency)
+df_OK_f$rpm<-as.factor(df_OK_f$rpm)
+
+Language="english"
+
+df_OK_f$nState=NA
+df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
+df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
+
+df_OK_f$State=as.factor(df_OK_f$State)
+df_OK_f$State <- relevel(df_OK_f$State, ref = "Dead")
+```
+
+```{r}
+df_OK_f_long_type <- read.csv("./data/internal/df_OK_f_long_type.csv")
+df_OK_n_ad_long_type <- read.csv("./data/internal/df_OK_n_ad_long_type.csv")
+df_OK_f_long_type <- bind_rows(df_OK_f_long_type,df_OK_n_ad_long_type)
+df_OK_f_long_type<- df_OK_f_long_type[which(df_OK_f_long_type$Species=="roach"),]
+
+df_OK_f_long_type<-df_OK_f_long_type[-which(df_OK_f_long_type$Value==0 | df_OK_f_long_type$Injury=="Injury_type_dead"),]
+if (exists("Language")){
+  if (Language=="dutch"){
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_no")] = "geen"
+    df_OK_f_long_type["Injury"][df_OK_f_long_type["Injury"] == "Injury_type_no"] <- "geen"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_slight")] <- "licht"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_severe")] <- "zwaar"
+  }
+  if (Language=="english"){
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_no")] = "no"
+    df_OK_f_long_type["Injury"][df_OK_f_long_type["Injury"] == "Injury_type_no"] <- "no"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_slight")] <- "slight"
+    df_OK_f_long_type$Injury[which(df_OK_f_long_type$Injury=="Injury_type_severe")] <- "severe"
+    df_OK_f_long_type$Injury <- factor(df_OK_f_long_type$Injury, levels=c("no", "slight", "severe"))
+  }
+}
+df_OK_f_long_type$Injury<-as.factor(df_OK_f_long_type$Injury)
+df_OK_f_long_type$Control<-as.factor(df_OK_f_long_type$Control)
+df_OK_f_long_type$Frequency<-as.factor(df_OK_f_long_type$Frequency)
+df_OK_f_long_type$frpm <- as.factor(df_OK_f_long_type$rpm)
+df_OK_f_long <- read.csv("./data/internal/df_OK_f_long.csv")
+df_OK_n_ad_long <- read.csv("./data/internal/df_OK_n_ad_long.csv")
+df_OK_f_long <- bind_rows(df_OK_f_long,df_OK_n_ad_long)
+df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
+df_OK_f_long$Injury<-as.factor(df_OK_f_long$Injury)
+df_OK_f_long$Control<-as.factor(df_OK_f_long$Control)
+df_OK_f_long$Frequency<-as.factor(df_OK_f_long$Frequency)
+df_OK_f_long$frpm <- as.factor(df_OK_f_long$rpm)
+```
+
+```{r}
+specieslist_OK <- "roach"
+injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+```
+
+```{r}
+df_OK_f$Type=df_OK_f$Control
+df_OK_f_long_type$Type=df_OK_f_long_type$Control
+df_OK_f_long$Type=df_OK_f_long$Control
+```
+
+## Methodology
+
+In addition to the logistic models, to assess the survival probability, and multinomial models, to assess the injury probability, decision trees were constructed. These allow an intuitive and clear interpretation of the data. 
+
+## Results
+
+
+```{r}
+# CRT for injury OK
+control <- rpart.control(minsplit = 10)
+color.selection <- "GnYlRd"
+par(mfrow = c(1,1))
+
+pdf("./figures/dt_injury_type_all_natural.pdf")
+form.state.df.tree <- as.formula(Injury ~ Pump_type_rpm + Type + Length)
+model.injury.df.tree <- rpart(form.state.df.tree, data = df_OK_f_long,control=control)
+e<-fancyRpartPlot(model.injury.df.tree,main="roach",box.palette = color.selection, legend.x = NA, palettes = "PuRd", xflip=TRUE)
+e
+model.injury.df.tree$variable.importance/max(model.injury.df.tree$variable.importance)
+dev.off()
+```
+
+When considering the type of the injuries, eel samples, control samples and samples with a length of less than 196 mm (all roach) were most likely to have no injury. Fish larger than 196 mm (all remaining bream) were most likely to have a 3.2 injury (Incisions, cuts, decapitation). If however, the length of the fish was between 196 and 340 the most likely injury would be 2.3 (Light scratches,contusions,scale loss \<20% of body).
+
+```{r}
+# Random forest state OK
+form.state.df.forest <- as.formula(nState ~ rpm + Species + Length + Control)
+model.state.df.forest <- ranger(form.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),],num.trees=500,respect.unordered.factors = "order",importance="permutation")
+model.state.df.forest$variable.importance
+rmse(predict(model.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),])$predictions,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),])
+
+form.state.df.forest <- as.formula(nState ~ rpm + Species + Length)
+model.state.df.forest <- ranger(form.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
+model.state.df.forest$variable.importance
+rmse(predict(model.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),])$predictions,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),])
+
+k=0
+model.state.df.forest<-list()
+for(i in specieslist_OK){
+  print(i)
+  k=k+1
+  form.state.df.forest <- as.formula(nState ~ rpm + Length + Control)
+  model.state.df.forest[[k]] <- ranger(form.state.df.forest,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
+  print(model.state.df.forest[[k]]$variable.importance)
+  print(rmse(predict(model.state.df.forest[[k]],df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),])$predictions,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),]))
+
+}
+
+k=0
+model.state.df.forest<-list()
+for(i in specieslist_OK){
+  print(i)
+  k=k+1
+  form.state.df.forest <- as.formula(nState ~ rpm + Length)
+  model.state.df.forest[[k]] <- ranger(form.state.df.forest,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
+  print(model.state.df.forest[[k]]$variable.importance)
+  print(rmse(predict(model.state.df.forest[[k]],df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),])$predictions,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),]))
+
+}
+```
+

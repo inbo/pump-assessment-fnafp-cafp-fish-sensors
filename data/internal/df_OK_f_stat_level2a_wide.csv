@@ -1,0 +1,13 @@
+"","Species","Pump_type","rpm","Control","Alive","Dead"
+"1","bream","F/N","468","control",50,0
+"2","bream","F/N","468","pump",28,69
+"3","bream","F/N","550","control",44,0
+"4","bream","F/N","550","pump",20,89
+"5","eel","F/N","468","control",45,0
+"6","eel","F/N","468","pump",245,0
+"7","eel","F/N","550","control",47,0
+"8","eel","F/N","550","pump",267,0
+"9","roach","F/N","468","control",92,3
+"10","roach","F/N","468","pump",244,98
+"11","roach","F/N","550","control",41,0
+"12","roach","F/N","550","pump",295,133

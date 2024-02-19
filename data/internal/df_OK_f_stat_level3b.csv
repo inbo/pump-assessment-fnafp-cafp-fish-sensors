@@ -1,0 +1,13 @@
+"","Species","Pump_type","rpm","Control","Injury_type_no","Injury_type_slight","Injury_type_severe","Injury_type_dead"
+"1","bream","F/N","468","control",48,2,0,0
+"2","bream","F/N","468","pump",2,33,62,6
+"3","bream","F/N","550","control",43,1,0,0
+"4","bream","F/N","550","pump",6,24,79,0
+"5","eel","F/N","468","control",44,3,0,0
+"6","eel","F/N","468","pump",241,15,0,0
+"7","eel","F/N","550","control",45,2,0,0
+"8","eel","F/N","550","pump",242,25,0,0
+"9","roach","F/N","468","control",72,22,3,0
+"10","roach","F/N","468","pump",165,130,48,10
+"11","roach","F/N","550","control",37,4,0,0
+"12","roach","F/N","550","pump",218,131,79,21

@@ -1,0 +1,490 @@
+---
+title: "Logistic_models_OK"
+author: "Stijn Bruneel"
+date: '2022-10-05'
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r include=FALSE}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+```
+
+```{r include=FALSE}
+source("./source/functions/log_model_state.R")
+source("./source/functions/plot_histogram_length_weight_distribution.R")
+source("./source/functions/run_chi_squared.R")
+source("./source/functions/stats_data_level1.R")
+source("./source/functions/stats_data_level2a.R")
+source("./source/functions/rmse.R")
+source("./source/functions/export_emmeans.R")
+source("./source/functions/round_df.R")
+```
+
+```{r include=FALSE}
+df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f$nState=NA
+df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
+df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
+specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
+# for (i in specieslist_OK){
+#   df_OK_f$Length[which(df_OK_f$Species==i)]<-(df_OK_f$Length[which(df_OK_f$Species==i)]-mean(df_OK_f$Length[which(df_OK_f$Species==i)]))/sd(df_OK_f$Length[which(df_OK_f$Species==i)])
+# }
+df_OK_f$frpm <- as.factor(df_OK_f$rpm)
+```
+
+```{r include=FALSE}
+df_OK_f_PI1 <- df_OK_f %>% 
+    group_by(Species,Control) %>%
+    mutate(Length=mean(Length)) %>%
+    ungroup() %>%
+    group_by(Species,Pump_type_rpm,Control) %>%
+    summarize(Length=mean(Length),n=n()) %>%
+    mutate(Treatment=paste(Species,Pump_type_rpm,'rpm',n,'#'))
+
+df_OK_f_PI2 <- df_OK_f %>% 
+    group_by(Species,Control) %>%
+    mutate(Length_class=split_var(Length,n=3)) %>%
+    ungroup() %>%
+    group_by(Species,Length_class,Control) %>%
+    mutate(Length=mean(Length)) %>%
+    group_by(Species,Pump_type_rpm,Length_class,Control) %>%
+    summarize(Length=mean(Length),n=n()) %>%
+    mutate(Treatment=paste(Species,Pump_type_rpm,'rpm',round(Length),'mm',n,'#'))
+
+df_OK_f_PI <- rbind(df_OK_f_PI1,df_OK_f_PI2)
+
+df_OK_f <- df_OK_f %>% 
+  group_by(Species,Control) %>%
+  mutate(Length_class=as.factor(split_var(Length,n=3)),fLength=as.factor(mean(Length)))
+```
+
+```{r eval=FALSE, include=FALSE}
+# Logistic models for state data of OK
+form.state.df.bern1 <- as.formula(nState ~ Pump_type_rpm * Control * Species * Length + (1|Scenario_control/Scenario_rep))
+log.model.state(form.state.df.bern1,df_OK_f,"mixed") #Model does not run
+```
+
+```{r eval=FALSE, include=FALSE}
+form.state.df.bern2 <- as.formula(nState ~ Pump_type_rpm + Control + Species + Length + (1|Scenario_control/Scenario_rep))
+log.model.state(form.state.df.bern2,df_OK_f,"mixed") #No effect of random factors here
+```
+
+## Methodology
+
+Methods: To identify the factors affecting mortality, logistic models per species with Bernoulli response were constructed. The state of each fish (alive=1 versus dead=0) was used as response. 
+
+Methods: For logistic models all data (with the exception of the control data) was used. The explanatory variables of the full model were screw type and rpm (discrete) and fish length (continuous) and their interaction. 
+
+Methods: for each scenario, 95% confidence intervals were estimated. In addition, predictor intervals were estimated for the aforementioned models. 
+
+## Results
+
+```{r include=FALSE}
+k=0
+# df_OK_f$Pump_type_rpm=as.factor(df_OK_f$Pump_type_rpm)
+# df_OK_f$Pump_type_rpm <- relevel(df_OK_f$Pump_type_rpm, ref = "F/N - 468 rpm")
+model.state.df.species.bern.PI<-list()
+# model.state.df.species.bin<-list()
+for(i in specieslist_OK){
+  k=k+1
+  tryCatch({
+  print(i)
+    
+  df_OK_f.temp <- df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),]  
+  # if(k==1){df_OK_f.temp <- df_OK_f.temp[-c(180, 294, 442),]}
+  # if(k==2){df_OK_f.temp <- df_OK_f.temp[-c(31, 101, 539),]}
+  
+  form.state.df.species.bern <- as.formula(nState ~ Pump_type_rpm * Length)
+  model.state.df.species.bern.PI[[k]] <- log.model.state(form.state.df.species.bern,df_OK_f.temp,"simple",AIC=TRUE)
+  
+  # form.state.df.species.bern <- as.formula(nState ~ Pump_type_rpm * Length + (1|Scenario_control/Scenario_rep))
+  # model.state.df.species.bern.PI[[k]] <- log.model.state(form.state.df.species.bern,df_OK_f.temp,"mixed")
+
+  #form.state.df.species.bin <- as.formula(I(percentage_state_test/100) ~ Pump_type + Control + Frequency)
+  #model.state.df.species.bin[[k]] <- log.model.state(form.state.df.species.bin,df_OK_f_stat_level1[which(df_OK_f_stat_level1$Species==i),],"simple")
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+}
+```
+
+### Model summary
+
+```{r}
+table <- round_df(as.data.frame(summary(model.state.df.species.bern.PI[[1]])$coefficients),digits=3) 
+table %>% kable(caption="")
+```
+
+Results: Survival of bream was lower at higher rotations with marginal significance. At lower rotations, longer bream had a significantly lower chance of survival. At higher rotations the much lower negative effect of length on survival chance was non-significant. 
+
+```{r fig.cap="Probability of mortality in function of length and screw type for bream"}
+temp1 <- df_OK_f[which(df_OK_f$Control=="pump" & df_OK_f$Species=="bream"),] %>% tidyr::expand(Pump_type_rpm,full_seq(round(Length),1))
+colnames(temp1)[4] <- "Length"
+temp.pp1<-cbind(temp1,predict(model.state.df.species.bern.PI[[1]], newdata = temp1, "response"))
+colnames(temp.pp1)[5] <- "probability"
+
+temp2 <- df_OK_f[which(df_OK_f$Control=="pump" & df_OK_f$Species=="roach"),] %>% tidyr::expand(Pump_type_rpm,full_seq(round(Length),1))
+colnames(temp2)[4] <- "Length"
+temp.pp2<-cbind(temp2,predict(model.state.df.species.bern.PI[[2]], newdata = temp2, "response"))
+colnames(temp.pp2)[5] <- "probability"
+
+temp3 <- df_OK_f[which(df_OK_f$Control=="pump" & df_OK_f$Species=="eel"),] %>% tidyr::expand(Pump_type_rpm,full_seq(round(Length),1))
+colnames(temp3)[4] <- "Length"
+temp.pp3<-cbind(temp3,predict(model.state.df.species.bern.PI[[3]], newdata = temp3, "response"))
+colnames(temp.pp3)[5] <- "probability"
+
+temp.pp <- rbind(temp.pp1,temp.pp2,temp.pp3)
+
+g<-ggplot(temp.pp, aes(x = Length, y = probability, colour = Pump_type_rpm)) + geom_point() + geom_point(data=df_OK_f[which(df_OK_f$Control=="pump"),],aes(x = Length, y = nState, colour = Pump_type_rpm),shape=3,height=0.1) + facet_grid(Species ~., scales = "free") + theme_bw() + ylim(0,1) + ylab("Survival probability") + xlab("Length (mm)") + scale_color_manual(values=c("violet","lightblue","pink")) +  theme(strip.background = element_rect(fill = "pink"))
+g
+
+pdf("./figures/manuscript/log_model_length.pdf")
+g
+dev.off()
+```
+
+```{r}
+table <- round_df(as.data.frame(summary(model.state.df.species.bern.PI[[2]])$coefficients),digits=3) 
+table %>% kable(caption="")
+```
+
+Results: Survival of roach was lower at higher rotations with marginal significance. At lower rotations, longer roach had a significantly lower chance of survival. At higher rotations the much lower negative effect of length on survival chance was non-significant. 
+
+```{r}
+table <- round_df(as.data.frame(summary(model.state.df.species.bern.PI[[3]])$coefficients),digits=3) 
+table %>% kable(caption="")
+```
+
+Results: Neither number of rotations nor length had a significant effect on the survival of eel as all eels survived in both scenarios. 
+
+### Model assumptions
+
+```{r}
+k=0
+for(i in specieslist_OK){
+  k=k+1
+  df_OK_f_temp <- df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),]
+  df_OK_f_temp$pred=predict(model.state.df.species.bern.PI[[k]],df_OK_f_temp,type="response")
+  df_OK_f_temp$logit=log(df_OK_f_temp$pred/(1-df_OK_f_temp$pred))
+  
+  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="F/N - 468 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
+  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="F/N - 550 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
+  
+  plot(model.state.df.species.bern.PI[[k]], which = 4, id.n = 3)
+  plot(model.state.df.species.bern.PI[[k]], which = 5)
+  if(k==1){print(df_OK_f_temp[c(17, 52, 148),c("Species", "State","Pump_type_rpm", "Length")])}
+  if(k==2){print(df_OK_f_temp[c(452, 739, 756),c("Species", "State","Pump_type_rpm", "Length")])}
+  
+  df_OK_f_temp$cooks.distance<-cooks.distance(model.state.df.species.bern.PI[[k]])
+  print(ggplot(df_OK_f_temp,aes(x=Length,y=cooks.distance,color=Fin_cut))+geom_point())
+  for (j in unique(df_OK_f_temp$Pump_type_rpm)){
+    print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm==j),],aes(x=Length,y=cooks.distance,color=Fin_cut))+geom_point())
+  }
+}
+```
+
+The model assumptions were met.
+
+### Model performance
+
+```{r}
+k=0
+for(i in specieslist_OK[1:2]){
+  print(i)
+  
+  k=k+1
+  
+  df_OK_f_temp <- df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),]
+  df_OK_f_temp$pred=predict(model.state.df.species.bern.PI[[k]],df_OK_f_temp,type="response")
+  df_OK_f_temp$res=df_OK_f_temp$pred-df_OK_f_temp$nState
+  
+  optCutOff <- optimalCutoff(df_OK_f_temp$nState,df_OK_f_temp$pred)[1] #http://r-statistics.co/Logistic-Regression-With-R.html
+  print("Misclassification error")
+  print(misClassError(df_OK_f_temp$nState, df_OK_f_temp$pred, threshold = optCutOff)) #http://r-statistics.co/Logistic-Regression-With-R.html
+  
+  plotROC(df_OK_f_temp$nState, df_OK_f_temp$pred)
+  
+  mCFaddenR2<-1-(logLik(model.state.df.species.bern.PI[[k]])/logLik(log.model.state(nState~1,df_OK_f_temp,"simple",AIC=FALSE)))
+  print("mcFadden R2")
+  print(mCFaddenR2)
+  
+  binnedplot(df_OK_f_temp$pred,
+           df_OK_f_temp$res, 
+           nclass = NULL, 
+           xlab = "Expected Values", 
+           ylab = "Average residual", 
+           main = "Binned residual plot", 
+           cex.pts = 0.8, 
+           col.pts = 1, 
+           col.int = "gray")
+  
+  binnedplot(df_OK_f_temp$Length,
+           df_OK_f_temp$res, 
+           nclass = NULL, 
+           xlab = "Expected Values", 
+           ylab = "Average residual", 
+           main = "Binned residual plot", 
+           cex.pts = 0.8, 
+           col.pts = 1, 
+           col.int = "gray")
+  
+  df_OK_f_temp$pred.rescaled<-NA
+  df_OK_f_temp$pred.rescaled[which(df_OK_f_temp$pred>=optCutOff)]=1
+  df_OK_f_temp$pred.rescaled[which(df_OK_f_temp$pred<optCutOff)]=0
+  
+  ActualValue=df_OK_f_temp$nState
+  Predictedvalue=df_OK_f_temp$pred>=optCutOff
+  print("Confusion matrix")
+  print(table(ActualValue, Predictedvalue))
+  print("Mean classification performance")
+  print(mean(Predictedvalue==ActualValue))
+}
+```
+
+The model performance was poor (AUC of 0.65) for bream and very poor for roach (AUC of 0.55). This indicates that it is very difficult to predict the survival probability of both species based on the rotations regime and fish length. 
+
+### Confidence intervals of survival and differences in survival between scenarios without consideration of length
+
+```{r fig.show="hold"}
+for(i in specieslist_OK){
+  print(i)
+  form <- as.formula(nState ~ Pump_type_rpm)
+  model <- log.model.state(form,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),],"simple",AIC=FALSE)
+  emm_without_length<-emmeans(model, pairwise ~ Pump_type_rpm, type="response")
+  print(emm_without_length)
+  print(plot(emm_without_length,PIs=FALSE,CI=TRUE,comparisons=TRUE,colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Survival probability")+ylab("Scenario"))
+  export.emmeans(emm_without_length,"Oude_Kale","emm_without_length",i)
+}
+```
+If length was not taken into account for bream, there was a significant difference between rotation regimes, with the higher rotations having a significantly lower survival probability. This effect became stronger after accounting for fish length. 
+
+With or without taking length into account for roach, there was no significant difference between rotation regimes. 
+
+### Confidence intervals of fish length and differences in fish length between scenarios
+
+```{r fig.show="hold"}
+k=0
+model_length<-list()
+emm_length<-list()
+emm_length_plot<-list()
+for(i in specieslist_OK){
+  k=k+1
+  print(i)
+  form <- as.formula(Length ~ Pump_type_rpm)
+  model_length[[k]] <- lm(form,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),])
+  plot(model_length[[k]])
+  print(summary(model_length[[k]]))
+  emm_length[[k]]<-emmeans(model_length[[k]], pairwise ~ Pump_type_rpm, type="response")
+  print(emm_length[[k]])
+  emm_length_plot[[k]]<-plot(emm_length[[k]],PIs=FALSE,CI=TRUE,comparisons=TRUE,adjust="bonferroni",int.adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Length")+ylab("Scenario")+xlim(mean(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")])-20,mean(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")])+20)
+  print(emm_length_plot[[k]])
+  export.emmeans(emm_length[[k]],"Oude_Kale","emm_length",i)
+  print(mean(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")],na.rm=TRUE))
+}
+```
+
+```{r}
+ggarrange(emm_length_plot[[1]],emm_length_plot[[2]],emm_length_plot[[3]],nrow=3,labels=c("Bream","Roach","Eel"))
+pdf("./figures/manuscript/length_CI.pdf",width=10,height=7.5)
+ggarrange(emm_length_plot[[1]],emm_length_plot[[2]],emm_length_plot[[3]],nrow=3,labels=c("Bream","Roach","Eel"))
+dev.off()
+```
+
+Length distributions were not signficantly different between scenarios for bream, roach and eel. For bream length distributions were different with marginal significance between scenarios. 
+
+### Confidence intervals of survival and differences in survival between scenarios with consideration of length (if retained)
+
+```{r fig.show="hold"}
+k=0
+emm_with_length_plot<-list()
+emm_with_length<-list()
+model_with_length<-list()
+for(i in specieslist_OK[1:2]){
+  k=k+1
+  print(i)
+  form <- as.formula(nState ~ Pump_type_rpm * Length)
+  model_with_length[[k]] <- log.model.state(form,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),],"simple",AIC=TRUE)
+  summary(model_with_length[[k]])
+  emm_with_length[[k]]<-emmeans(model_with_length[[k]], pairwise ~ Pump_type_rpm, type="response")
+  #emtrends_with_length<-emtrends(model_with_length[[k]], Pump_type_rpm ~ Length, var="Length", type="response")
+  print(emm_with_length[[k]])
+  emm_with_length_plot[[k]]<-plot(emm_with_length[[k]],PIs=FALSE,CI=TRUE,comparisons=TRUE,adjust="bonferroni",int.adjust="bonferroni", colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw(base_size=18)+xlab("Survival probability")+ylab("Scenario")+xlim(0,1)
+  #print(emm_with_length_plot[[k]])
+  pdf(paste("./figures/additional/emm_with_length_plot_",i,".pdf",sep=""))
+  print(emm_with_length_plot[[k]])
+  dev.off()
+  mylist <- list(Length=seq(min(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")]),max(df_OK_f$Length[which(df_OK_f$Species==i & df_OK_f$Control=="pump")]),by=10),Pump_type_rpm=unique(df_OK_f$Pump_type_rpm[which(df_OK_f$Species==i & df_OK_f$Control=="pump")]))
+  #print(emmip(model_with_length[[k]], Pump_type_rpm ~ Length,at=mylist, type="response")+theme_bw())
+  export.emmeans(emm_with_length[[k]],"Oude_Kale","emm_with_length",i)
+}
+ggarrange(emm_with_length_plot[[1]],emm_with_length_plot[[2]],nrow=2,labels=c("Bream","Roach"))
+
+pdf("./figures/manuscript/log_model_CI.pdf",width=10,height=5)
+ggarrange(emm_with_length_plot[[1]],emm_with_length_plot[[2]],nrow=2,labels=c("Bream","Roach"))
+dev.off()
+```
+
+```{r}
+table <- round_df(as.data.frame(summary(model_with_length[[1]])$coefficients),digits=3) 
+table %>% kable(caption="")
+```
+
+```{r}
+table <- round_df(as.data.frame(summary(model_with_length[[2]])$coefficients),digits=3) 
+table %>% kable(caption="")
+```
+
+### Confidence intervals of survival and differences in survival between scenarios and control experiments with consideration of length
+
+```{r fig.show="hold"}
+for(i in specieslist_OK){
+  print(i)
+  form <- as.formula(nState ~ Pump_type_rpm * Length + Control * Pump_type_rpm)
+  model <- log.model.state(form,df_OK_f[which(df_OK_f$Species==i),],"simple",AIC=FALSE)
+  emm_control_with_length<-emmeans(model, pairwise ~ Control| Pump_type_rpm, type="response")
+  print(emm_control_with_length)
+  print(plot(emm_control_with_length,PIs=FALSE,CI=TRUE,comparisons=TRUE,adjust="bonferroni",int.adjust="bonferroni",colors=c("black","#FF0000FF","#FF8000FF"))+theme_bw()+xlab("Survival probability")+ylab("Scenario"))
+  print(emmip(model, Pump_type_rpm ~ Control, type="response")+theme_bw())
+  export.emmeans(emm_control_with_length,"Oude_Kale","emm_control_with_length",i)
+}
+```
+
+For the controls of all three species at both scenarios, there were no recorded dead fish. Hence, the mortality was 0 percent. Casualities in the actual samples can therefore be considered as caused by the pumps rather than the handling of the fish. Since the controls had a survival rate of 100 percent, it does not make sense to apply statistical tests or estimate confidence intervals as coefficients and standard errors would yield infinite values.  
+
+### Confidence intervals of survival based on data alone (i.e. no logistic models) with distinction of length classes
+
+```{r fig.show="hold"}
+# Confidence intervals state
+estimates <- list()
+model.state.df.species.bern.CI <- list()
+k=0
+for(i in specieslist_OK){
+  estimates1<-NULL
+  k=k+1
+  form.state.df.species.bern <- as.formula(nState ~ 0 + Pump_type_rpm : Length_class)
+  model.state.df.species.bern.CI[[k]] <- log.model.state(form.state.df.species.bern,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),],"simple",AIC=FALSE)
+  for(var in rownames((summary((model.state.df.species.bern.CI[[k]]))$coefficients))){
+    overleving <- round(plogis(coef(model.state.df.species.bern.CI[[k]])[var]) * 100, 2)
+  
+    confidence_intervals <- confint(model.state.df.species.bern.CI[[k]],level=0.95)
+  
+    overleving_LLCI <- round(plogis(confidence_intervals[var, "2.5 %"])* 100, 2)
+    overleving_ULCI <- round(plogis(confidence_intervals[var, "97.5 %"])* 100, 2)
+  
+    estimates_temp <- data.frame(varName = as.character(var),
+                                 overleving,
+                                 overleving_LLCI,
+                                 overleving_ULCI, strinOKAsFactors = FALSE)
+    estimates1 <- bind_rows(estimates1, estimates_temp)
+    
+    estimates1$overleving_LLCI[which(estimates1$overleving==100)]=100+100*log(0.05)/50
+    estimates1$overleving_ULCI[which(estimates1$overleving==100)]=100
+  }
+  p <- ggplot(estimates1, aes(overleving, varName)) + geom_pointrange(aes(xmin = overleving_LLCI, xmax = overleving_ULCI)) + xlab("Probability of survival") + theme_bw() + xlim(0,100)
+  print(p)
+  estimates[[k]]<-estimates1
+}
+```
+
+### Confidence intervals of survival based on data alone (i.e. no logistic models) with distinction of length classes and with control
+
+```{r fig.show="hold"}
+# Confidence intervals state
+df_OK_f$Control=as.factor(df_OK_f$Control)
+df_OK_f$Control <- relevel(df_OK_f$Control, ref = "pump")
+estimates <- list()
+model.state.df.species.bern.CI <- list()
+k=0
+for(i in specieslist_OK[c(1:2)]){
+  estimates1<-NULL
+  k=k+1
+  form.state.df.species.bern <- as.formula(nState ~ 0 + Pump_type_rpm : Length_class + Pump_type_rpm : Control)
+  model.state.df.species.bern.CI[[k]] <- log.model.state(form.state.df.species.bern,df_OK_f[which(df_OK_f$Species==i),],"simple",AIC=FALSE)
+  for(var in rownames((summary((model.state.df.species.bern.CI[[k]]))$coefficients))){
+    overleving <- round(plogis(coef(model.state.df.species.bern.CI[[k]])[var]) * 100, 2)
+  
+    confidence_intervals <- confint(model.state.df.species.bern.CI[[k]],level=0.95)
+  
+    overleving_LLCI <- round(plogis(confidence_intervals[var, "2.5 %"])* 100, 2)
+    overleving_ULCI <- round(plogis(confidence_intervals[var, "97.5 %"])* 100, 2)
+  
+    estimates_temp <- data.frame(varName = as.character(var),
+                                 overleving,
+                                 overleving_LLCI,
+                                 overleving_ULCI, strinOKAsFactors = FALSE)
+    estimates1 <- bind_rows(estimates1, estimates_temp)
+    
+    estimates1$overleving_LLCI[which(estimates1$overleving==100)]=100+100*log(0.05)/50
+    estimates1$overleving_ULCI[which(estimates1$overleving==100)]=100
+    
+    estimates1$varName<-gsub(":Controlcontrol"," - Control",estimates1$varName)
+  }
+  p <- ggplot(estimates1, aes(overleving, varName)) + geom_pointrange(aes(xmin = overleving_LLCI, xmax = overleving_ULCI)) + xlab("Probability of survival") + theme_bw() + xlim(0,100)
+  print(p)
+  estimates[[k]]<-estimates1
+}
+```
+
+### Confidence intervals of fish length based on data alone (i.e. no logistic models) 
+
+```{r fig.show="hold"}
+# Confidence intervals length
+estimateslength <- list()
+model.length.df.species.bern.CI <- list()
+k=0
+
+for(i in specieslist_OK){
+  k=k+1
+  form.length.df.species.bern <- as.formula(Length ~ 0 + Pump_type_rpm)
+  model.length.df.species.bern.CI[[k]] <- lm(form.length.df.species.bern,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),])
+  
+  estimates1length <- NULL
+  for(var in rownames((summary((model.length.df.species.bern.CI[[k]]))$coefficients))){
+    length <- round((coef(model.length.df.species.bern.CI[[k]])[var]), 2)
+  
+    confidence_intervals <- confint(model.length.df.species.bern.CI[[k]],level=0.95)
+  
+    length_LLCI <- round((confidence_intervals[var, "2.5 %"]), 2)
+    length_ULCI <- round((confidence_intervals[var, "97.5 %"]), 2)
+  
+    estimates_temp <- data.frame(varName = as.character(var),
+                                 length,
+                                 length_LLCI,
+                                 length_ULCI, strinOKAsFactors = FALSE)
+    estimates1length <- bind_rows(estimates1length, estimates_temp)
+  }
+  p <- ggplot(estimates1length, aes(length, varName)) + geom_pointrange(aes(xmin = length_LLCI, xmax = length_ULCI)) + xlab("length") + theme_bw()
+  print(p)
+  estimateslength[[k]]<-estimates1length
+}
+```
+### Prediction intervals of logistic models
+
+```{r fig.show="hold"}
+# Prediction intervals
+model.state.df.species.bern.PI <- list()
+k=0
+
+for(i in specieslist_OK){
+  k=k+1
+  
+  form.state.df.species.bern <- as.formula(nState ~ Pump_type_rpm * Length)
+  model.state.df.species.bern.PI[[k]] <- log.model.state(form.state.df.species.bern,df_OK_f[which(df_OK_f$Species==i & df_OK_f$Control=="pump"),],"simple",AIC=TRUE)
+  
+  df_OK_f_PI_species <- df_OK_f_PI[which(df_OK_f_PI$Species==i),]
+  prediction.center <- predict(model.state.df.species.bern.PI[[k]], newdata = df_OK_f_PI_species, type="response", se.fit=TRUE)
+  df_OK_f_PI_species$lower <- prediction.center$fit - 1.96 * prediction.center$se.fit
+  df_OK_f_PI_species$center <- prediction.center$fit
+  df_OK_f_PI_species$upper <- prediction.center$fit + 1.96 * prediction.center$se.fit
+  
+  df_OK_f_PI_species$Treatment <- factor(df_OK_f_PI_species$Treatment, levels = df_OK_f_PI_species$Treatment)
+  p <- ggplot(df_OK_f_PI_species[which(df_OK_f_PI_species$Control=="pump"),], aes(center, Treatment, colour = Pump_type_rpm)) + geom_pointrange(aes(xmin = lower, xmax = upper)) + xlab("Probability of survival") + theme_bw() + xlim(0,1)
+  print(p)
+}
+```

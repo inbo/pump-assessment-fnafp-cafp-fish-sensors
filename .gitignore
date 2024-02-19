@@ -43,9 +43,7 @@ vignettes/*.pdf
 !Meetings.docx
 
 #Exclude all internal data
-data/internal/Groot_Schijn*
-data/internal/Oude_Kale*
-data/internal/Ham*
+data/internal*
 
 #Exclude all figures
 /figures*

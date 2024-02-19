@@ -328,17 +328,17 @@ df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
 df_OK_f_stat_level2a_wide <- as.data.frame(df_OK_f_stat_level2a %>% 
   dplyr::select(c("Species","Pump_type","rpm","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 
   spread(State,number_state_binom)) 
-write.csv(df_OK_f_stat_level2a_wide,"./data/internal/df_OK_f_stat_level2a_wide.csv")
+write.csv(df_OK_f_stat_level2a_wide,"./data/internal/NP/df_OK_f_stat_level2a_wide.csv")
 
 df_OK_f_stat_level2a_wide_species_pump <- as.data.frame(stats_data_level2a(df_OK_f_stat_level2a,c("Species", "Pump_type", "Control", "State")) %>% 
   dplyr::select(c("Species","Pump_type","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 
   spread(State,number_state_binom)) 
-write.csv(df_OK_f_stat_level2a_wide_species_pump,"./data/internal/df_OK_f_stat_level2a_wide_species_pump.csv")
+write.csv(df_OK_f_stat_level2a_wide_species_pump,"./data/NP/internal/df_OK_f_stat_level2a_wide_species_pump.csv")
 
 df_OK_f_stat_level2a_wide_freq_pump <- as.data.frame(stats_data_level2a(df_OK_f_stat_level2a,c("rpm", "Pump_type","Control" ,"State")) %>% 
   dplyr::select(c("Pump_type","rpm","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 
   spread(State,number_state_binom)) 
-write.csv(df_OK_f_stat_level2a_wide_freq_pump,"./data/internal/df_OK_f_stat_level2a_wide_freq_pump.csv")
+write.csv(df_OK_f_stat_level2a_wide_freq_pump,"./data/internal/NP/df_OK_f_stat_level2a_wide_freq_pump.csv")
 
 ```
 
@@ -352,7 +352,7 @@ df_OK_f_stat_level3 <- as.data.frame(df_OK_f_stat_level3 %>%
   dplyr::select(-number_recaptured, -percentage_state_test, -min_state, -max_state, -Weight, -Length, -Number_Injuries, -number_of_released_fish,-number_of_released_fish_per_scenario,-number_state_binom, -Injury_type_no, -Injury_type_slight, -Injury_type_severe, -Injury_type_dead))
 df_OK_f_stat_level3$Class_3.3<-NULL
 df_OK_f_stat_level3$Class_3.7<-NULL
-write.csv(df_OK_f_stat_level3,"./data/internal/df_OK_f_stat_level3.csv")
+write.csv(df_OK_f_stat_level3,"./data/internal/NP/df_OK_f_stat_level3.csv")
 ```
 
 ```{r}
@@ -360,6 +360,6 @@ write.csv(df_OK_f_stat_level3,"./data/internal/df_OK_f_stat_level3.csv")
 df_OK_f_stat_level3b <- stats_data_level2a(df_OK_f_stat_level1,c("Species", "Pump_type", "rpm","Control"))
 df_OK_f_stat_level3b <- as.data.frame(df_OK_f_stat_level3b %>% 
   dplyr::select(Species, Pump_type, rpm, Control, Injury_type_no, Injury_type_slight, Injury_type_severe, Injury_type_dead))
-write.csv(df_OK_f_stat_level3b,"./data/internal/df_OK_f_stat_level3b.csv")
+write.csv(df_OK_f_stat_level3b,"./data/internal/NP/df_OK_f_stat_level3b.csv")
 ```
 

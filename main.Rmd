@@ -74,7 +74,6 @@ df_OK_n_ad <- read_excel("./data/external/processed_in_excel/natuurlijk.xlsx")
 
 -   Fish with outlying length values, i.e. values that fall outside of 3 times IQR below Q1 or 3 times IQR above Q3, were removed. Only for roach 5 fish were removed. 
 
-
 ```{r}
 Remove_too_few_samples <- "NO"
 threshold_too_few_samples <- 5
@@ -116,9 +115,9 @@ if (Remove_too_few_samples=="YES"){
 ```
 
 ```{r}
-write.csv(df_OK_f_bream,"./data/internal/df_OK_f_bream.csv")
-write.csv(df_OK_f_roach,"./data/internal/df_OK_f_roach.csv")
-write.csv(df_OK_f_eel,"./data/internal/df_OK_f_eel.csv")
+write.csv(df_OK_f_bream,"./data/internal/additional/df_OK_f_bream.csv")
+write.csv(df_OK_f_roach,"./data/internal/additional/df_OK_f_roach.csv")
+write.csv(df_OK_f_eel,"./data/internal/additional/df_OK_f_eel.csv")
 write.csv(df_OK_f,"./data/internal/df_OK_f.csv")
 write.csv(df_OK_n_ad,"./data/internal/df_OK_n_ad.csv")
 rm(df_OK_f_bream,df_OK_f_eel,df_OK_f_roach)
@@ -171,7 +170,7 @@ source("./source/functions/stats_data_level2a.R")
 # Run aggregation function to yield number of recaptured fish per scenario and fin cut for OK
 df_OK_f_stat_level1 <- stats_data_level1(df_OK_f)
 df_OK_f_stat_level1$Pump_type_Frequency <- paste(df_OK_f_stat_level1$Pump_type,df_OK_f_stat_level1$Frequency)
-write.csv(df_OK_f_stat_level1,"./data/internal/df_OK_f_stat_level1.csv")
+write.csv(df_OK_f_stat_level1,"./data/internal/additional/df_OK_f_stat_level1.csv")
 ```
 
 ```{r fig.cap="Mortality in function of rpm per species for samples of OK. "}
@@ -184,8 +183,8 @@ ggplot(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="pump" & df_O
 # Run aggregation function to yield number of recaptured fish per scenario for OK
 df_OK_f_stat_level2a <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$number_recaptured>=10),],c("Species", "Pump_type", "rpm", "rpm", "Control", "State")) 
 df_OK_f_stat_level2b <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$Frequency_theoretical==df_OK_f_stat_level1$Frequency),],c("Species", "Pump_type", "rpm", "rpm", "Control", "Fin_cut")) 
-write.csv(df_OK_f_stat_level2a,"./data/internal/df_OK_f_stat_level2a.csv")
-write.csv(df_OK_f_stat_level2b,"./data/internal/df_OK_f_stat_level2b.csv")
+write.csv(df_OK_f_stat_level2a,"./data/internal/additional/df_OK_f_stat_level2a.csv")
+write.csv(df_OK_f_stat_level2b,"./data/internal/additional/df_OK_f_stat_level2b.csv")
 
 # Plots depicting average, minimum and maximum for the percentage Alive versus Dead of recaptured fish per scenario for OK
 ggplot(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="pump" & df_OK_f_stat_level2a$State=="Dead"),],aes(rpm, percentage_state_test),size = 0.5, color = "black") + geom_pointrange(aes(ymin = min_state, ymax = max_state), linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Mortality (%)") + xlab("Operational pump \nmode (rpm)") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Operational pump \nmode (rpm)") + geom_point(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="control" & df_OK_f_stat_level2a$State=="Dead"),],aes(rpm, percentage_state_test),position = position_dodge(0.5),shape=8)
@@ -219,12 +218,12 @@ df_OK_f_stat_level1_long$percentage_injury_test <- df_OK_f_stat_level1_long$Valu
 df_OK_f_stat_level2a %>% gather(.,key = Injury, Value, Class_1:Class_4, na.rm = FALSE) -> df_OK_f_stat_level2a_long
 df_OK_f_stat_level2a_long$percentage_injury_test <- df_OK_f_stat_level2a_long$Value/df_OK_f_stat_level2a_long$number_recaptured
 
-write.csv(df_OK_f_long,"./data/internal/df_OK_f_long.csv")
-write.csv(df_OK_f_long_type,"./data/internal/df_OK_f_long_type.csv")
-write.csv(df_OK_n_ad_long,"./data/internal/df_OK_n_ad_long.csv")
-write.csv(df_OK_n_ad_long_type,"./data/internal/df_OK_n_ad_long_type.csv")
-write.csv(df_OK_f_stat_level1_long,"./data/internal/df_OK_f_stat_level1_long.csv")
-write.csv(df_OK_f_stat_level2a_long,"./data/internal/df_OK_f_stat_level2a_long.csv")
+write.csv(df_OK_f_long,"./data/internal/additional/df_OK_f_long.csv")
+write.csv(df_OK_f_long_type,"./data/internal/additional/df_OK_f_long_type.csv")
+write.csv(df_OK_n_ad_long,"./data/internal/additional/df_OK_n_ad_long.csv")
+write.csv(df_OK_n_ad_long_type,"./data/internal/additional/df_OK_n_ad_long_type.csv")
+write.csv(df_OK_f_stat_level1_long,"./data/internal/additional/df_OK_f_stat_level1_long.csv")
+write.csv(df_OK_f_stat_level2a_long,"./data/internal/additional/df_OK_f_stat_level2a_long.csv")
 ```
 
 ```{r}
@@ -250,9 +249,9 @@ ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="
 specieslist_OK = unique(df_OK_f$Species)
 injurylist_OK = unique(df_OK_f_stat_level1_long$Injury) 
 injurylist_type_OK = unique(df_OK_f_long_type$Injury)
-write.csv(specieslist_OK,"./data/internal/specieslist_OK.csv")
-write.csv(injurylist_OK,"./data/internal/injurylist_OK.csv")
-write.csv(injurylist_type_OK,"./data/internal/injurylist_type_OK.csv")
+write.csv(specieslist_OK,"./data/internal/additional/specieslist_OK.csv")
+write.csv(injurylist_OK,"./data/internal/additional/injurylist_OK.csv")
+write.csv(injurylist_type_OK,"./data/internal/additional/injurylist_type_OK.csv")
 
 for(i in specieslist_OK){
     
@@ -333,7 +332,7 @@ write.csv(df_OK_f_stat_level2a_wide,"./data/internal/NP/df_OK_f_stat_level2a_wid
 df_OK_f_stat_level2a_wide_species_pump <- as.data.frame(stats_data_level2a(df_OK_f_stat_level2a,c("Species", "Pump_type", "Control", "State")) %>% 
   dplyr::select(c("Species","Pump_type","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 
   spread(State,number_state_binom)) 
-write.csv(df_OK_f_stat_level2a_wide_species_pump,"./data/NP/internal/df_OK_f_stat_level2a_wide_species_pump.csv")
+write.csv(df_OK_f_stat_level2a_wide_species_pump,"./data/internal/NP/df_OK_f_stat_level2a_wide_species_pump.csv")
 
 df_OK_f_stat_level2a_wide_freq_pump <- as.data.frame(stats_data_level2a(df_OK_f_stat_level2a,c("rpm", "Pump_type","Control" ,"State")) %>% 
   dplyr::select(c("Pump_type","rpm","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 

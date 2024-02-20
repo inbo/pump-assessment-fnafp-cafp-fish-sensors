@@ -14,12 +14,12 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 
 ```{r}
 # import libraries from file
-source("./source/Libraries.R")
+source("./source/not_functions/libraries.R")
 ```
 
 ```{r}
-file.final.injection.nadir <- read.csv("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_ROIs_OK_long.csv")
-file.final <- read.csv("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_final_OK.csv")
+file.final.injection.nadir <- read.csv("data/bds/internal/All_BDS_data_ROIs_OK_long.csv")
+file.final <- read.csv("data/bds/internal/All_BDS_data_final_OK.csv")
 ```
 
 ```{r}

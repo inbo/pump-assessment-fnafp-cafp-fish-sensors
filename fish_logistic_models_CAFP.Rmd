@@ -1,5 +1,5 @@
 ---
-title: "Logistic_models_OK_natural"
+title: "fish_logistic_models_CAFP"
 author: "Stijn Bruneel"
 date: '2022-10-05'
 output:

@@ -1,5 +1,5 @@
 ---
-title: "main"
+title: "fish_main"
 author: "Stijn Bruneel and Sarah Broos"
 date: '19-02-2024'
 output:

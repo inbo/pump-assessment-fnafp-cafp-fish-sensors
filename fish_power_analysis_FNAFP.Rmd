@@ -1,5 +1,5 @@
 ---
-title: "Power_analysis_OK"
+title: "fish_power_analysis_FNAFP"
 author: "Stijn Bruneel"
 date: "22-11-2022"
 output: word_document

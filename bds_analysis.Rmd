@@ -1,5 +1,5 @@
 ---
-title: "BDS_TalTech_OK_Analysis"
+title: "bds_analysis"
 author: "Stijn Bruneel"
 date: "2023-03-07"
 output:
@@ -12,18 +12,18 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 ```
 
-```{r eval=FALSE}
-output<-"word"
+```{r}
+output<-"html"
 ```
 
 ```{r}
 # import libraries from file
-source("./source/Libraries.R")
+source("./source/not_functions/libraries.R")
 ```
 
 ```{r}
-file.final.injection.nadir.wide <- read.csv("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_ROIs_OK.csv")
-file.final <- read.csv("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_final_OK.csv")
+file.final.injection.nadir.wide <- read.csv("data/bds/internal/All_BDS_data_ROIs_OK.csv")
+file.final <- read.csv("data/bds/internal/All_BDS_data_final_OK.csv")
 ```
 
 # Data preparation
@@ -69,8 +69,6 @@ file.final.injection.nadir.wide <- file.final.injection.nadir.wide %>%
 file.final.injection.nadir.wide <- file.final.injection.nadir.wide %>%
   mutate(ROC2 = (P..hPa._P2 - P..hPa._P3)/(Time..s._P2-Time..s._P3))
 ```
-
-
 
 # Data exploration
 
@@ -125,13 +123,12 @@ print(c)
 ```
 
 ```{r}
-pdf("./figures/Oude_Kale/BDS_boxplots.pdf",height = 12)
+pdf("./figures/manuscript/BDS_boxplots.pdf",height = 12)
 library(grid)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(a), ggplotGrob(b), ggplotGrob(c), size = "last"))
 dev.off()
 ```
-
 
 ## Non-parametric tests to compare scenarios
 
@@ -177,7 +174,7 @@ as.data.frame(pairwise.wilcox.test(file.final.injection.nadir.wide$P..hPa._nadir
 ## Nadir pressure cumulative distribution functions
 
 ```{r}
-pdf("./figures/Oude_Kale/CDF_Nadir.pdf")
+pdf("./figures/manuscript/CDF_Nadir.pdf")
 g<-ggplot(file.final.injection.nadir.wide, aes(P..hPa._nadir_pressure,colour=scenario)) + stat_ecdf(geom = "step") + ylab("F(Nadir pressure)") + xlab("Nadir pressure (hPa)") + theme_minimal()
 g
 dev.off()
@@ -452,10 +449,10 @@ i
 j
 k
 l
-pdf("./figures/Oude_Kale/timeseries_all.pdf")
+pdf("./figures/manuscript/timeseries_all.pdf")
 ggarrange(g,h,common.legend = TRUE,ncol=1)
 dev.off()
-pdf("./figures/Oude_Kale/timeseries_selection.pdf")
+pdf("./figures/manuscript/timeseries_selection.pdf")
 ggarrange(i,j,k,l,common.legend = TRUE)
 dev.off()
 ```

@@ -43,7 +43,11 @@ vignettes/*.pdf
 !Meetings.docx
 
 #Exclude all internal data
-data/internal*
+data/fish/internal*
+data/bds/internal*
+
+#Exclude all external bds data
+data/bds/external*
 
 #Exclude all figures
 /figures*

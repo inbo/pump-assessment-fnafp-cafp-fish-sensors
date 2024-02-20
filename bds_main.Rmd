@@ -1,5 +1,5 @@
 ---
-title: "BDS_TalTech_OK"
+title: "bds_main"
 author: "Stijn Bruneel"
 date: "11-12-2022"
 output:
@@ -14,13 +14,13 @@ knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 
 ```{r}
 # import libraries from file
-source("./source/Libraries.R")
+source("./source/not_functions/libraries.R")
 source("./source/functions/correct_ROI_manually.R")
 ```
 
 ```{r}
-if (file.exists("./data/internal/Oude_Kale/BDS_TalTech/Manually_changed_ROI.csv")) {
- unlink("./data/internal/Oude_Kale/BDS_TalTech/Manually_changed_ROI.csv")
+if (file.exists("./data/bds/internal/Manually_changed_ROI.csv")) {
+ unlink("./data/bds/internal/Manually_changed_ROI.csv")
  print("File is deleted..")
 } else{
  print("File not exists..")
@@ -30,8 +30,8 @@ if (file.exists("./data/internal/Oude_Kale/BDS_TalTech/Manually_changed_ROI.csv"
 # Read in data, correct column names if necessary and rbind into 1 file
 
 ```{r}
-if (file.exists("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_OK.csv")==FALSE){
-  list.dir<-list.dirs(path = "./data/external/Oude_Kale/BDS_TalTech/Devils_Hole_BDS_Post-Processing/")
+if (file.exists("data/bds/internal/All_BDS_data_OK.csv")==FALSE){
+  list.dir<-list.dirs(path = "./data/bds/external/")
   for (i in 2:length(list.dir)){
     list.file<-list.files(path=list.dir[[i]], pattern=".csv", all.files=TRUE,full.names=TRUE)
     for (j in 1:length(list.file)){
@@ -40,8 +40,8 @@ if (file.exists("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_OK.csv")==FALS
       if (any(colnames(file.temp)=="AX..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AX..m.s2.")] <- "AXEarth..m.s2."}
       if (any(colnames(file.temp)=="AY..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AY..m.s2.")] <- "AYEarth..m.s2."}
       if (any(colnames(file.temp)=="AZ..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AZ..m.s2.")] <- "AZEarth..m.s2."}
-      file.temp$scenario<-str_split(list.file[j],"/")[[1]][7]
-      file.temp$sensor<-gsub(".csv","",str_split(list.file[j],"/")[[1]][8])
+      file.temp$scenario<-str_split(list.file[j],"/")[[1]][5]
+      file.temp$sensor<-gsub(".csv","",str_split(list.file[j],"/")[[1]][6])
       file.temp$scenario_sensor<-paste(file.temp$scenario,file.temp$sensor,sep="/")
       if (j==1){file=file.temp} 
       if (j>1){file=smartbind(file,file.temp)}
@@ -50,7 +50,8 @@ if (file.exists("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_OK.csv")==FALS
     if (i>2){file.complete=smartbind(file.complete,file)}
   }
   file.complete <- file.complete[which(file.complete$Time..s.<100),]
-} else {file.complete<-read.csv("data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_OK.csv")}
+  write.csv(file.complete,"data/bds/internal/All_BDS_data_OK.csv")
+} else {file.complete<-read.csv("data/bds/internal/All_BDS_data_OK.csv")}
 rm(file.temp)
 ```
 
@@ -593,8 +594,8 @@ l
 ```
 
 ```{r}
-write.csv(file.final,"data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_final_OK.csv")
-write.csv(file.final.injection.nadir.wide,"data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_ROIs_OK.csv")
-write.csv(file.final.injection.nadir,"data/internal/Oude_Kale/BDS_TalTech/All_BDS_data_ROIs_OK_long.csv")
+write.csv(file.final,"data/bds/internal/All_BDS_data_final_OK.csv")
+write.csv(file.final.injection.nadir.wide,"data/bds/internal/All_BDS_data_ROIs_OK.csv")
+write.csv(file.final.injection.nadir,"data/bds/internal/All_BDS_data_ROIs_OK_long.csv")
 ```
 

@@ -30,12 +30,18 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
    * a2_fish_np_models_FNAFP.Rmd: Non-parametric models to assess:
       * whether there are any differences in length distributions between scenarios
       * whether there are any differences in mortality and number of injuries between scenarios
-   * a3_fish_dt_CAFP.Rmd: Decision trees to assess the effect of different factors on the probability of being injured and being alive for FNAFP and CAFP for roach.
-   * a3_fish_dt_FNAFP.Rmd: Decision trees to assess the effect of different factors on the probability of being injured and being alive for FNAFP for roach, bream and eel.
-   * a4_fish_logistic_models_CAFP.Rmd: Logistic models to assess the effect of different factors on the probability of being alive for FNAFP and CAFP for roach.
-   * a4_fish_logistic_models_FNAFP.Rmd: Logistic models to assess the effect of different factors on the probability of being alive for FNAFP for roach, bream and eel.
-   * a4_fish_multinomial_CAFP.Rmd: Multinomial models to assess the effect of different factors on the probability of being injured for FNAFP and CAFP for roach.
-   * a4_fish_multinomial_FNAFP.Rmd: Multinomial models to assess the effect of different factors on the probability of being injured for FNAFP for roach, bream and eel.
+   * a3_fish_dt_CAFP.Rmd: Decision trees to assess the effect of different factors on the probability of being injured and being alive
+      * for FNAFP and CAFP for roach.
+   * a3_fish_dt_FNAFP.Rmd: Decision trees to assess the effect of different factors on the probability of being injured and being alive
+      * for FNAFP for roach, bream and eel.
+   * a4_fish_logistic_models_CAFP.Rmd: Logistic models to assess the effect of different factors on the probability of being alive
+      * for FNAFP and CAFP for roach.
+   * a4_fish_logistic_models_FNAFP.Rmd: Logistic models to assess the effect of different factors on the probability of being alive
+      * for FNAFP for roach, bream and eel.
+   * a4_fish_multinomial_CAFP.Rmd: Multinomial models to assess the effect of different factors on the probability of being injured
+      * for FNAFP and CAFP for roach.
+   * a4_fish_multinomial_FNAFP.Rmd: Multinomial models to assess the effect of different factors on the probability of being injured
+      * for FNAFP for roach, bream and eel.
    * a5_fish_power_analysis_FNAFP.Rmd: Power analysis to determine sample size based on mortality analysis
    * b1_bds_main.Rmd: Clean BDS timeseries and exploratory analysis
       * Metadata Backpack: https://biorobotics.pages.taltech.ee/backpack/en/data/

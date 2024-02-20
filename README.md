@@ -25,5 +25,20 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
          * clean_data_forced.R: clean the FNAFP data
          * clean_data_natural.R: clean the CAFP data
          * libraries.R: all used libraries are given here
+   * gitignore: determines which files to pull and push from and to github
+   * a1_fish_main.Rmd:
+   * a2_fish_np_models_FNAFP.Rmd:
+   * a3_fish_dt_CAFP.Rmd:
+   * a3_fish_dt_FNAFP.Rmd:
+   * a4_fish_logistic_models_CAFP.Rmd:
+   * a4_fish_logistic_models_FNAFP.Rmd:
+   * a4_fish_multinomial_CAFP.Rmd:
+   * a4_fish_multinomial_FNAFP.Rmd:
+   * a5_fish_power_analysis_FNAFP.Rmd:
+   * b1_bds_main.Rmd:
+      * Metadata Backpack: https://biorobotics.pages.taltech.ee/backpack/en/data/
+      * Data Backpack: https://livettu-my.sharepoint.com/personal/jetuht_ttu_ee/_layouts/15/onedrive.aspx?   
+   * b2_bds_analysis.Rmd:
+   * b3_bds_visualisation.Rmd:
+ 
 
-      

@@ -75,11 +75,6 @@ df_OK_n_ad <- read_excel("./data/fish/external/processed_in_excel/natuurlijk.xls
 -   Fish with outlying length values, i.e. values that fall outside of 3 times IQR below Q1 or 3 times IQR above Q3, were removed. Only for roach 5 fish were removed. 
 
 ```{r}
-Remove_too_few_samples <- "NO"
-threshold_too_few_samples <- 5
-```
-
-```{r}
 source("./source/not_functions/clean_data_forced.R")
 source("./source/not_functions/clean_data_natural.R")
 source("./source/functions/log_model_state.R")
@@ -101,17 +96,6 @@ df_OK_n_ad<-clean_data_OK_natural(df_OK_n_ad,Control="Both",outlier.removal = TR
 ```{r}
 # Combine OK data of different species 
 df_OK_f<-rbind(df_OK_f_bream,df_OK_f_roach,df_OK_f_eel)
-```
-
-```{r}
-if (Remove_too_few_samples=="YES"){
-  df_OK_f_temp_too_few_samples <- read.csv("./data/fish/internal/df_OK_f_too_few_samples.csv")[,c("Species","Pump_type","rpm","Control","Fin_cut")]
-  df_OK_f_temp_too_few_samples$rpm <- as.character(df_OK_f_temp_too_few_samples$rpm)
-  df_OK_f_temp_too_few_samples$too_few_samples<-"YES"
-  df_OK_f <- left_join(df_OK_f,df_OK_f_temp_too_few_samples, by=c("Species","Pump_type","rpm","Control","Fin_cut"))
-  df_OK_f <- df_OK_f[-which(df_OK_f$too_few_samples=="YES"),]
-}
-  
 ```
 
 ```{r}

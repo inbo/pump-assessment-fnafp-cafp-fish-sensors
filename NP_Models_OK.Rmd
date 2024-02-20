@@ -25,14 +25,14 @@ source("./source/functions/rmse.R")
 ```
 
 ```{r include=FALSE}
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
-df_OK_f_stat_level2a <- read.csv("./data/internal/df_OK_f_stat_level2a.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
+df_OK_f_stat_level2a <- read.csv("./data/fish/internal/df_OK_f_stat_level2a.csv")
 ```
 
 ```{r include=FALSE}
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
-injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
-injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/fish/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/fish/internal/injurylist_type_OK.csv")[,2]
 ```
 
 ## Methodology: Length distributions
@@ -66,9 +66,9 @@ Results: For both roach and eel there seem to be some significant differences in
 
 ```{r include=FALSE}
 # Chi-squared test for state OK
-df_OK_f_stat_level2a_wide<-read.csv("./data/internal/df_OK_f_stat_level2a_wide.csv")[,-c(1)]
-df_OK_f_stat_level2a_wide_species_pump<-read.csv("./data/internal/df_OK_f_stat_level2a_wide_species_pump.csv")[,-1]
-df_OK_f_stat_level2a_wide_freq_pump<-read.csv("./data/internal/df_OK_f_stat_level2a_wide_freq_pump.csv")[,-1]
+df_OK_f_stat_level2a_wide<-read.csv("./data/fish/internal/df_OK_f_stat_level2a_wide.csv")[,-c(1)]
+df_OK_f_stat_level2a_wide_species_pump<-read.csv("./data/fish/internal/df_OK_f_stat_level2a_wide_species_pump.csv")[,-1]
+df_OK_f_stat_level2a_wide_freq_pump<-read.csv("./data/fish/internal/df_OK_f_stat_level2a_wide_freq_pump.csv")[,-1]
 ```
 
 ## Methodology: Mortality

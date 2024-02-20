@@ -31,7 +31,7 @@ clean_data_OK<-function(data,Controle,outlier.removal=FALSE){
   data$Frequency[data$Frequency=="40Hz"]<-"40"  
   data$Frequency[data$Frequency=="47Hz"]<-"47" 
   
-  number_of_released_fish<-read_excel("./data/external/processed_in_excel/number_of_individuals_OK.xlsx")[,c("Date_input","Fin_cut","Species","Frequency_theoretical","Controle","number_of_released_fish","Remarks")]
+  number_of_released_fish<-read_excel("./data/fish/external/processed_in_excel/number_of_individuals_OK.xlsx")[,c("Date_input","Fin_cut","Species","Frequency_theoretical","Controle","number_of_released_fish","Remarks")]
   number_of_released_fish$Frequency_theoretical=as.character(number_of_released_fish$Frequency_theoretical)
   number_of_released_fish$Fin_cut=paste(number_of_released_fish$Fin_cut,number_of_released_fish$Date_input)
   number_of_released_fish=number_of_released_fish[which(number_of_released_fish$Species==unique(data$Species)),]

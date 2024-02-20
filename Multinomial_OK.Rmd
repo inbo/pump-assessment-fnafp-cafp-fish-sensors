@@ -27,13 +27,13 @@ source("./source/functions/round_df.R")
 
 ```{r include=FALSE}
 Language<-"english"
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
 df_OK_f$Frequency<-as.factor(df_OK_f$Frequency)
 df_OK_f$frpm <- as.factor(df_OK_f$rpm)
 ```
 
 ```{r include=FALSE}
-df_OK_f_long_type <- read.csv("./data/internal/df_OK_f_long_type.csv")
+df_OK_f_long_type <- read.csv("./data/fish/internal/df_OK_f_long_type.csv")
 df_OK_f_long_type<-df_OK_f_long_type[-which(df_OK_f_long_type$Value==0 | df_OK_f_long_type$Injury=="Injury_type_dead"),]
 if (exists("Language")){
   if (Language=="dutch"){
@@ -54,7 +54,7 @@ df_OK_f_long_type$Injury<-as.factor(df_OK_f_long_type$Injury)
 df_OK_f_long_type$Control<-as.factor(df_OK_f_long_type$Control)
 df_OK_f_long_type$Frequency<-as.factor(df_OK_f_long_type$Frequency)
 df_OK_f_long_type$frpm <- as.factor(df_OK_f_long_type$rpm)
-df_OK_f_long <- read.csv("./data/internal/df_OK_f_long.csv")
+df_OK_f_long <- read.csv("./data/fish/internal/df_OK_f_long.csv")
 df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
 df_OK_f_long$Injury<-as.factor(df_OK_f_long$Injury)
 df_OK_f_long$Control<-as.factor(df_OK_f_long$Control)
@@ -63,9 +63,9 @@ df_OK_f_long$frpm <- as.factor(df_OK_f_long$rpm)
 ```
 
 ```{r include=FALSE}
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
-injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
-injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/fish/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/fish/internal/injurylist_type_OK.csv")[,2]
 ```
 
 ## Methodology

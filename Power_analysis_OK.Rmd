@@ -30,7 +30,7 @@ source("./source/functions/round_df.R")
 ```
 
 ```{r include=FALSE}
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
 df_OK_f$nState=NA
 df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
 df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
@@ -38,7 +38,7 @@ df_OK_f$frpm <- as.factor(df_OK_f$rpm)
 ```
 
 ```{r include=FALSE}
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")
 ```
 
 ```{r include=FALSE}
@@ -72,7 +72,7 @@ if (RUN==TRUE){
         store[row_selection,4]=rownames(x$coefficients)
         store[row_selection,c(5:6)]=c(x$coefficients[,c(1,4)])
       }
-      filename=paste("./data/internal/power/power_",i,"_",j,"fish.csv",sep="")
+      filename=paste("./data/fish/internal/power/power_",i,"_",j,"fish.csv",sep="")
       write.csv(store,filename)
     }
     
@@ -82,9 +82,9 @@ if (RUN==TRUE){
 ```
 
 ```{r}
-filelist<-list.files("./data/internal/power/")
+filelist<-list.files("./data/fish/internal/power/")
 for (i in 1:length(filelist)){
-  filename=paste("./data/internal/power/",filelist[i],sep="")
+  filename=paste("./data/fish/internal/power/",filelist[i],sep="")
   model=read.csv(filename)
   if (i == 1){
     fullmodel=model

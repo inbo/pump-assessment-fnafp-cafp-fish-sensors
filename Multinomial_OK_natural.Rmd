@@ -27,8 +27,8 @@ source("./source/functions/round_df.R")
 
 ```{r include=FALSE}
 Language<-"english"
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
-df_OK_n_ad <- read.csv("./data/internal/df_OK_n_ad.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
+df_OK_n_ad <- read.csv("./data/fish/internal/df_OK_n_ad.csv")
 df_OK_f <- bind_rows(df_OK_f,df_OK_n_ad)
 df_OK_f <- df_OK_f[which(df_OK_f$Species=="roach"),]
 
@@ -37,8 +37,8 @@ df_OK_f$frpm <- as.factor(df_OK_f$rpm)
 ```
 
 ```{r include=FALSE}
-df_OK_f_long_type <- read.csv("./data/internal/df_OK_f_long_type.csv")
-df_OK_n_ad_long_type <- read.csv("./data/internal/df_OK_n_ad_long_type.csv")
+df_OK_f_long_type <- read.csv("./data/fish/internal/df_OK_f_long_type.csv")
+df_OK_n_ad_long_type <- read.csv("./data/fish/internal/df_OK_n_ad_long_type.csv")
 df_OK_f_long_type <- bind_rows(df_OK_f_long_type,df_OK_n_ad_long_type)
 df_OK_f_long_type<- df_OK_f_long_type[which(df_OK_f_long_type$Species=="roach"),]
 
@@ -62,8 +62,8 @@ df_OK_f_long_type$Injury<-as.factor(df_OK_f_long_type$Injury)
 df_OK_f_long_type$Control<-as.factor(df_OK_f_long_type$Control)
 df_OK_f_long_type$Frequency<-as.factor(df_OK_f_long_type$Frequency)
 df_OK_f_long_type$frpm <- as.factor(df_OK_f_long_type$rpm)
-df_OK_f_long <- read.csv("./data/internal/df_OK_f_long.csv")
-df_OK_n_ad_long <- read.csv("./data/internal/df_OK_n_ad_long.csv")
+df_OK_f_long <- read.csv("./data/fish/internal/df_OK_f_long.csv")
+df_OK_n_ad_long <- read.csv("./data/fish/internal/df_OK_n_ad_long.csv")
 df_OK_f_long <- bind_rows(df_OK_f_long,df_OK_n_ad_long)
 df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
 df_OK_f_long$Injury<-as.factor(df_OK_f_long$Injury)
@@ -74,8 +74,8 @@ df_OK_f_long$frpm <- as.factor(df_OK_f_long$rpm)
 
 ```{r include=FALSE}
 specieslist_OK <- "roach"
-injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
-injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/fish/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/fish/internal/injurylist_type_OK.csv")[,2]
 ```
 
 ## Methodology

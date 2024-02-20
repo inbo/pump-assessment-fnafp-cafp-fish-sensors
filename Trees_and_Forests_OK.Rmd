@@ -24,7 +24,7 @@ source("./source/functions/rmse.R")
 ```
 
 ```{r}
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
 df_OK_f$rpm<-as.factor(df_OK_f$rpm)
 Language="english"
 
@@ -37,10 +37,10 @@ df_OK_f$State <- relevel(df_OK_f$State, ref = "Dead")
 ```
 
 ```{r}
-df_OK_f_long_type <- read.csv("./data/internal/df_OK_f_long_type.csv")
+df_OK_f_long_type <- read.csv("./data/fish/internal/df_OK_f_long_type.csv")
 df_OK_f_long_type<-df_OK_f_long_type[-which(df_OK_f_long_type$Value==0 | df_OK_f_long_type$Injury=="Injury_type_dead"),]
 df_OK_f_long_type$rpm=as.factor(df_OK_f_long_type$rpm)
-df_OK_f_long <- read.csv("./data/internal/df_OK_f_long.csv")
+df_OK_f_long <- read.csv("./data/fish/internal/df_OK_f_long.csv")
 df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
 df_OK_f_long$rpm=as.factor(df_OK_f_long$rpm)
 
@@ -62,9 +62,9 @@ if (exists("Language")){
 ```
 
 ```{r}
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
-injurylist_OK <- read.csv("./data/internal/injurylist_OK.csv")[,2]
-injurylist_type_OK <- read.csv("./data/internal/injurylist_type_OK.csv")[,2]
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")[,2]
+injurylist_OK <- read.csv("./data/fish/internal/injurylist_OK.csv")[,2]
+injurylist_type_OK <- read.csv("./data/fish/internal/injurylist_type_OK.csv")[,2]
 ```
 
 ```{r}

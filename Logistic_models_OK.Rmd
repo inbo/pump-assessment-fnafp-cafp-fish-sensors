@@ -29,11 +29,11 @@ source("./source/functions/round_df.R")
 ```
 
 ```{r include=FALSE}
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
 df_OK_f$nState=NA
 df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
 df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")[,2]
 # for (i in specieslist_OK){
 #   df_OK_f$Length[which(df_OK_f$Species==i)]<-(df_OK_f$Length[which(df_OK_f$Species==i)]-mean(df_OK_f$Length[which(df_OK_f$Species==i)]))/sd(df_OK_f$Length[which(df_OK_f$Species==i)])
 # }

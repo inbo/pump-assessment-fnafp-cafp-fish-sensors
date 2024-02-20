@@ -29,14 +29,14 @@ source("./source/functions/round_df.R")
 ```
 
 ```{r include=FALSE}
-df_OK_f <- read.csv("./data/internal/df_OK_f.csv")
-df_OK_n_ad <- read.csv("./data/internal/df_OK_n_ad.csv")
+df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
+df_OK_n_ad <- read.csv("./data/fish/internal/df_OK_n_ad.csv")
 df_OK_f <- bind_rows(df_OK_f,df_OK_n_ad)
 
 df_OK_f$nState=NA
 df_OK_f$nState[which(df_OK_f$State=="Alive")]=1
 df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
-specieslist_OK <- read.csv("./data/internal/specieslist_OK.csv")[,2]
+specieslist_OK <- read.csv("./data/fish/internal/specieslist_OK.csv")[,2]
 
 df_OK_f$frpm <- as.factor(df_OK_f$rpm)
 ```

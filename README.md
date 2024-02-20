@@ -42,7 +42,7 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
       * for FNAFP and CAFP for roach.
    * a4_fish_multinomial_FNAFP.Rmd: Multinomial models to assess the effect of different factors on the probability of being injured
       * for FNAFP for roach, bream and eel.
-   * a5_fish_power_analysis_FNAFP.Rmd: Power analysis to determine sample size based on mortality analysis
+   * a5_fish_power_analysis_FNAFP.Rmd: Power analysis to determine sample size based on mortality analysis for FNAFP
    * b1_bds_main.Rmd: Clean BDS timeseries and exploratory analysis
       * Metadata Backpack: https://biorobotics.pages.taltech.ee/backpack/en/data/
       * Data Backpack: https://livettu-my.sharepoint.com/personal/jetuht_ttu_ee/_layouts/15/onedrive.aspx?   

@@ -249,9 +249,9 @@ ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="
 specieslist_OK = unique(df_OK_f$Species)
 injurylist_OK = unique(df_OK_f_stat_level1_long$Injury) 
 injurylist_type_OK = unique(df_OK_f_long_type$Injury)
-write.csv(specieslist_OK,"./data/fish/internal/additional/specieslist_OK.csv")
-write.csv(injurylist_OK,"./data/fish/internal/additional/injurylist_OK.csv")
-write.csv(injurylist_type_OK,"./data/fish/internal/additional/injurylist_type_OK.csv")
+write.csv(specieslist_OK,"./data/fish/internal/specieslist_OK.csv")
+write.csv(injurylist_OK,"./data/fish/internal/injurylist_OK.csv")
+write.csv(injurylist_type_OK,"./data/fish/internal/injurylist_type_OK.csv")
 
 for(i in specieslist_OK){
     

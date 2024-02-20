@@ -1,5 +1,5 @@
 export.emmeans<-function(data.list,location,file,species){
-  file=paste("./data/internal/",location,"/",file,"_",species,".xlsx",sep="")
+  file=paste("./data/fish/internal/",location,"/",file,"_",species,".xlsx",sep="")
   if (file.exists(file)){file.remove(file)}
   wb = createWorkbook()
   worksheets = c("CI","Contrasts")

@@ -108,20 +108,33 @@ rm(df_OK_f_bream,df_OK_f_eel,df_OK_f_roach)
 
 ```{r}
 # Present the scenarios and fin cuts for OK
-df_OK_f %>% distinct(Species, Pump_type, rpm, Fin_cut, Control) %>% arrange(Pump_type, Species, rpm, Control) %>% kable(caption="Different scenarios and samples for OK")
+df_OK_f %>% 
+  distinct(Species, Pump_type, rpm, Fin_cut, Control) %>% 
+  arrange(Pump_type, Species, rpm, Control) %>% 
+  kable(caption="Different scenarios and samples for OK")
 ```
 
 ```{r}
 # Number of recaptured individuals for OK
-df_OK_f %>% group_by(Species) %>% distinct(Species, Individuals_ID) %>% count() %>% kable(caption="Number of recaptured individuals per species for OK")
+df_OK_f %>% 
+  group_by(Species) %>% 
+  distinct(Species, Individuals_ID) %>% 
+  count() %>% 
+  kable(caption="Number of recaptured individuals per species for OK")
 ```
 
 ```{r}
 # Number of recaptured individuals per scenario and fin cut (n) and total number of recaptured individuals per species (Total) for OK
-df_OK_f_temp <- df_OK_f %>% group_by(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish) %>% distinct(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish, Individuals_ID) %>% summarise(n = n()) %>% ungroup() %>% group_by(Species) %>% mutate(Total = sum(n)) %>% arrange(Species, Pump_type, rpm, Control) 
+df_OK_f_temp <- df_OK_f %>% 
+  group_by(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish) %>%
+  distinct(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish, Individuals_ID) %>% 
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  group_by(Species) %>% 
+  mutate(Total = sum(n)) %>% 
+  arrange(Species, Pump_type, rpm, Control) 
+
 df_OK_f_temp %>% kable(caption = "Number of released fish per scenario and sample, Number of observed fish per scenario and sample (n) and total number of fish per species for OK.")
-df_OK_f_temp_too_few_samples <- df_OK_f_temp[which(df_OK_f_temp$n<threshold_too_few_samples),]
-if (Remove_too_few_samples=="NO"){write.csv(df_OK_f_temp_too_few_samples,"./data/fish/internal/df_OK_f_too_few_samples.csv")}
 rm(df_OK_f_temp,df_OK_f_temp_too_few_samples)
 ```
 

@@ -134,7 +134,8 @@ df_OK_f_temp <- df_OK_f %>%
   mutate(Total = sum(n)) %>% 
   arrange(Species, Pump_type, rpm, Control) 
 
-df_OK_f_temp %>% kable(caption = "Number of released fish per scenario and sample, Number of observed fish per scenario and sample (n) and total number of fish per species for OK.")
+df_OK_f_temp %>% 
+  kable(caption = "Number of released fish per scenario and sample, Number of observed fish per scenario and sample (n) and total number of fish per species for OK.")
 rm(df_OK_f_temp,df_OK_f_temp_too_few_samples)
 ```
 
@@ -163,7 +164,15 @@ write.csv(df_OK_f_stat_level1,"./data/fish/internal/additional/df_OK_f_stat_leve
 
 ```{r fig.cap="Mortality in function of rpm per species for samples of OK. "}
 # Boxplots of the percentage Alive versus Dead of recaptured fish per scenario and fin cut for OK
-ggplot(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="pump" & df_OK_f_stat_level1$State=="Dead"),],aes(rpm, percentage_state_test),size = 0.5, color = "black") + geom_boxplot(linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Mortality (%)") + xlab("Operational pump \nmode (rpm)") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Operational pump \nmode (rpm)") + geom_point(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="control" & df_OK_f_stat_level1$State=="Dead"),],aes(rpm,percentage_state_test), alpha=1,position = position_dodge(0.5),shape=8)
+ggplot(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="pump" & df_OK_f_stat_level1$State=="Dead"),], aes(rpm, percentage_state_test),size = 0.5, color = "black") + 
+  geom_boxplot(linetype = 1, position = position_dodge(0.5)) + 
+  facet_grid(cols = vars(Species)) + ylab("Mortality (%)") + 
+  xlab("Operational pump \nmode (rpm)") + 
+  ylim(0,100) + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + 
+  labs(color = "Operational pump \nmode (rpm)") + 
+  geom_point(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="control" & df_OK_f_stat_level1$State=="Dead"),], aes(rpm,percentage_state_test), alpha=1,position = position_dodge(0.5),shape=8)
 ```
 
 ```{r fig.cap="Mortality in function of rpm per species for samples of OK. "}
@@ -174,14 +183,29 @@ write.csv(df_OK_f_stat_level2a,"./data/fish/internal/additional/df_OK_f_stat_lev
 write.csv(df_OK_f_stat_level2b,"./data/fish/internal/additional/df_OK_f_stat_level2b.csv")
 
 # Plots depicting average, minimum and maximum for the percentage Alive versus Dead of recaptured fish per scenario for OK
-ggplot(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="pump" & df_OK_f_stat_level2a$State=="Dead"),],aes(rpm, percentage_state_test),size = 0.5, color = "black") + geom_pointrange(aes(ymin = min_state, ymax = max_state), linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Mortality (%)") + xlab("Operational pump \nmode (rpm)") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Operational pump \nmode (rpm)") + geom_point(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="control" & df_OK_f_stat_level2a$State=="Dead"),],aes(rpm, percentage_state_test),position = position_dodge(0.5),shape=8)
+ggplot(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="pump" & df_OK_f_stat_level2a$State=="Dead"),], aes(rpm, percentage_state_test),size = 0.5, color = "black") + 
+  geom_pointrange(aes(ymin = min_state, ymax = max_state), linetype = 1, position = position_dodge(0.5)) + 
+  facet_grid(cols = vars(Species)) + 
+  ylab("Mortality (%)") + 
+  xlab("Operational pump \nmode (rpm)") + 
+  ylim(0,100) + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + 
+  labs(color = "Operational pump \nmode (rpm)") + 
+  geom_point(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="control" & df_OK_f_stat_level2a$State=="Dead"),], aes(rpm, percentage_state_test),position = position_dodge(0.5),shape=8)
 ```
 
 ### Recapture percentage
 
 ```{r fig.cap="Recapture percentage in function of rpm (Hz) per species for samples of OK."}
 # Recapture percentage OK (boxplots: per fin cut)
-ggplot(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="pump"),],aes(rpm, 100*(number_recaptured/number_of_released_fish)),size = 0.5, color = "black") + geom_boxplot(linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Percentage \n of recovered fish (%)") + xlab("Operational pump \nmode (rpm)") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Pump_type") + geom_point(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="control"),],aes(rpm, 100*(number_recaptured/number_of_released_fish)),position = position_dodge(0.5),shape=8)
+ggplot(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="pump"),], aes(rpm, 100*(number_recaptured/number_of_released_fish)), size = 0.5, color = "black") + 
+  geom_boxplot(linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Percentage \n of recovered fish (%)") + xlab("Operational pump \nmode (rpm)") + 
+  ylim(0,100) + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + 
+  labs(color = "Pump_type") + 
+  geom_point(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="control"),], aes(rpm,100*(number_recaptured/number_of_released_fish)),position = position_dodge(0.5),shape=8)
 ```
 
 ### Injuries
@@ -209,20 +233,57 @@ write.csv(df_OK_f_stat_level2a_long,"./data/fish/internal/additional/df_OK_f_sta
 
 ```{r}
 # How much fish (n) have more than one observed injury (Number_injuries) for OK
-df_OK_f %>% filter(Frequency != "NA" & Number_Injuries != "NA") %>% group_by(Species, Pump_type, rpm, Control, Number_Injuries) %>% tally() %>% ungroup() %>% kable(caption = "number of fish with different numbers of injuries per scenario for OK.")
+df_OK_f %>% 
+  filter(Frequency != "NA" & Number_Injuries != "NA") %>% 
+  group_by(Species, Pump_type, rpm, Control, Number_Injuries) %>% 
+  tally() %>% ungroup() %>% 
+  kable(caption = "number of fish with different numbers of injuries per scenario for OK.")
 ```
 
 #### Injury plots OK
 
 ```{r fig.cap="Injury plots OK."}
 # Injury plots for OK
-ggplot(data=df_OK_f_stat_level1_long[which(df_OK_f_stat_level1_long$Control=="pump"),],aes(Injury, Value),size = 0.5, color = "black") + geom_boxplot(aes(color = rpm), linetype = 1, position = position_dodge(0.5)) + facet_grid(rows = vars(Species)) + ylab("Percentage \n of recovered fish (%)") + xlab("") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Operational pump \nmode (rpm)") + theme(axis.text.x = element_text(angle = 90)) + scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
+ggplot(data=df_OK_f_stat_level1_long[which(df_OK_f_stat_level1_long$Control=="pump"),], aes(Injury, Value), size = 0.5, color = "black") + 
+  geom_boxplot(aes(color = rpm), linetype = 1, position = position_dodge(0.5)) + 
+  facet_grid(rows = vars(Species)) + 
+  ylab("Percentage \n of recovered fish (%)") + 
+  xlab("") + ylim(0,100) + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "Operational pump \nmode (rpm)") + 
+  theme(axis.text.x = element_text(angle = 90)) + 
+  scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
 
-ggplot(data=df_OK_f_stat_level1_long[which(df_OK_f_stat_level1_long$Control=="pump"),],aes(Injury, Value),size = 0.5, color = "black") + geom_boxplot(aes(color = State), linetype = 1, position = position_dodge(0.5)) + facet_grid(rows = vars(Species)) + ylab("Percentage \n of recovered fish (%)") + xlab("") + ylim(0,100) + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + labs(color = "State of fish") + theme(axis.text.x = element_text(angle = 90)) + scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
+ggplot(data=df_OK_f_stat_level1_long[which(df_OK_f_stat_level1_long$Control=="pump"),], aes(Injury, Value), size = 0.5, color = "black") + 
+  geom_boxplot(aes(color = State), linetype = 1, position = position_dodge(0.5)) + 
+  facet_grid(rows = vars(Species)) + 
+  ylab("Percentage \n of recovered fish (%)") + 
+  xlab("") + 
+  ylim(0,100) + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + 
+  labs(color = "State of fish") + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
 
-ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="pump"),]) + geom_bar(aes(x=Injury, y=Value, fill=rpm), position = "dodge", stat = "identity") + facet_grid(rows = vars(Species)) + theme_bw() + xlab("Injury class") + ylab("Number of observations") + scale_fill_discrete(name = "Operational pump \nmode (rpm)") + theme(axis.text.x = element_text(angle = 90)) + scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
+ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="pump"),]) + 
+  geom_bar(aes(x=Injury, y=Value, fill=rpm), position = "dodge", stat = "identity") + 
+  facet_grid(rows = vars(Species)) + 
+  theme_bw() + 
+  xlab("Injury class") + 
+  ylab("Number of observations") + 
+  scale_fill_discrete(name = "Operational pump \nmode (rpm)") + 
+  theme(axis.text.x = element_text(angle = 90)) + 
+  scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
 
-ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="pump"),]) + geom_bar(aes(x=Injury, y=Value, fill=State), position = "dodge", stat = "identity") + facet_grid(rows = vars(Species)) + theme_bw() + xlab("Injury class") + ylab("Number of observations") + scale_fill_discrete(name = "State of the fish") + theme(axis.text.x = element_text(angle = 90)) + scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
+ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="pump"),]) + 
+  geom_bar(aes(x=Injury, y=Value, fill=State), position = "dodge", stat = "identity") + 
+  facet_grid(rows = vars(Species)) + 
+  theme_bw() + xlab("Injury class") + 
+  ylab("Number of observations") + 
+  scale_fill_discrete(name = "State of the fish") +
+  theme(axis.text.x = element_text(angle = 90)) + 
+  scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
 
 # Length versus weight plots for OK
 specieslist_OK = unique(df_OK_f$Species)
@@ -239,7 +300,14 @@ print(df_OK_f %>%
   filter(Species == i) %>%
   dplyr::select(rpm, Fin_cut, Length, Weight, Individuals_ID) %>%
   distinct(rpm, Fin_cut, Length, Weight, Individuals_ID) %>%
-  ggplot(aes(x=Length, y=Weight, shape=Fin_cut))+ geom_point(color='black') + facet_grid(cols = vars(rpm)) + theme_bw() + theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12)) + scale_color_manual(values="black") + ggtitle(i))
+  ggplot(aes(x=Length, y=Weight, shape=Fin_cut)) + 
+    geom_point(color='black') + 
+    facet_grid(cols = vars(rpm)) + 
+    theme_bw() + 
+    theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + 
+    scale_shape_manual(values = c(1,2,3,4,5,6,7,8,9,10,11,12)) + 
+    scale_color_manual(values="black") + 
+    ggtitle(i))
 }
 ```
 
@@ -253,7 +321,14 @@ for(i in specieslist_OK){
     filter(Species == i) %>%
     dplyr::select(Injury, Pump_type_rpm, Frequency, Fin_cut, Length, Individuals_ID) %>%
     distinct(Injury, Pump_type_rpm, Frequency, Fin_cut, Length, Individuals_ID) %>%
-    ggplot(aes(x=Injury, y=Length))+ geom_boxplot(color='black') + theme_bw() + theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + facet_grid(cols = vars(Pump_type_rpm)) + scale_color_manual(values="black") + ggtitle(i) + theme(axis.text.x = element_text(angle = 60, hjust = 1))) 
+    ggplot(aes(x=Injury, y=Length)) + 
+      geom_boxplot(color='black') + 
+      theme_bw() + 
+      theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + 
+      facet_grid(cols = vars(Pump_type_rpm)) + 
+      scale_color_manual(values="black") + 
+      ggtitle(i) + 
+      theme(axis.text.x = element_text(angle = 60, hjust = 1))) 
   print(plot_injury_length[[k]])
   }
 ```
@@ -268,7 +343,14 @@ for(i in specieslist_OK){
     filter(Species == i) %>%
     dplyr::select(State, Pump_type_rpm, Frequency, Fin_cut, Length, Individuals_ID) %>%
     distinct(State, Pump_type_rpm, Frequency, Fin_cut, Length, Individuals_ID) %>%
-    ggplot(aes(x=State, y=Length))+ geom_boxplot(color='black') + theme_bw() + theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + facet_grid(cols = vars(Pump_type_rpm)) + scale_color_manual(values="black") + ggtitle(i) + theme(axis.text.x = element_text(angle = 60, hjust = 1))) 
+    ggplot(aes(x=State, y=Length)) + 
+      geom_boxplot(color='black') + 
+      theme_bw() + 
+      theme(legend.position = "none",strip.background = element_rect(colour = "black", fill = "white")) + 
+      facet_grid(cols = vars(Pump_type_rpm)) + 
+      scale_color_manual(values="black") + 
+      ggtitle(i) + 
+      theme(axis.text.x = element_text(angle = 60, hjust = 1))) 
   print(plot_mort_length[[k]])
   }
 ```

@@ -43,8 +43,8 @@ df_OK_f$State <- relevel(df_OK_f$State, ref = "Dead")
 ```
 
 ```{r}
-df_OK_f_long_type <- read.csv("./data/fish/internal/df_OK_f_long_type.csv")
-df_OK_n_ad_long_type <- read.csv("./data/fish/internal/df_OK_n_ad_long_type.csv")
+df_OK_f_long_type <- read.csv("./data/fish/internal/additional/df_OK_f_long_type.csv")
+df_OK_n_ad_long_type <- read.csv("./data/fish/internal/additional/df_OK_n_ad_long_type.csv")
 df_OK_f_long_type <- bind_rows(df_OK_f_long_type,df_OK_n_ad_long_type)
 df_OK_f_long_type<- df_OK_f_long_type[which(df_OK_f_long_type$Species=="roach"),]
 
@@ -68,8 +68,8 @@ df_OK_f_long_type$Injury<-as.factor(df_OK_f_long_type$Injury)
 df_OK_f_long_type$Control<-as.factor(df_OK_f_long_type$Control)
 df_OK_f_long_type$Frequency<-as.factor(df_OK_f_long_type$Frequency)
 df_OK_f_long_type$frpm <- as.factor(df_OK_f_long_type$rpm)
-df_OK_f_long <- read.csv("./data/fish/internal/df_OK_f_long.csv")
-df_OK_n_ad_long <- read.csv("./data/fish/internal/df_OK_n_ad_long.csv")
+df_OK_f_long <- read.csv("./data/fish/internal/additional/df_OK_f_long.csv")
+df_OK_n_ad_long <- read.csv("./data/fish/internal/additional/df_OK_n_ad_long.csv")
 df_OK_f_long <- bind_rows(df_OK_f_long,df_OK_n_ad_long)
 df_OK_f_long<-df_OK_f_long[-which(df_OK_f_long$Value==0 | df_OK_f_long$Injury=="Class_4"),]
 df_OK_f_long$Injury<-as.factor(df_OK_f_long$Injury)
@@ -116,12 +116,12 @@ When considering the type of the injuries, eel samples, control samples and samp
 
 ```{r}
 # Random forest state OK
-form.state.df.forest <- as.formula(nState ~ rpm + Species + Length + Control)
+form.state.df.forest <- as.formula(nState ~ Pump_type_rpm + Species + Length + Control)
 model.state.df.forest <- ranger(form.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),],num.trees=500,respect.unordered.factors = "order",importance="permutation")
 model.state.df.forest$variable.importance
 rmse(predict(model.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),])$predictions,df_OK_f[which(is.na(df_OK_f$Length)==FALSE),])
 
-form.state.df.forest <- as.formula(nState ~ rpm + Species + Length)
+form.state.df.forest <- as.formula(nState ~ Pump_type_rpm + Species + Length)
 model.state.df.forest <- ranger(form.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
 model.state.df.forest$variable.importance
 rmse(predict(model.state.df.forest,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),])$predictions,df_OK_f[which(is.na(df_OK_f$Length & df_OK_f$Control=="pump")==FALSE),])
@@ -131,7 +131,7 @@ model.state.df.forest<-list()
 for(i in specieslist_OK){
   print(i)
   k=k+1
-  form.state.df.forest <- as.formula(nState ~ rpm + Length + Control)
+  form.state.df.forest <- as.formula(nState ~ Pump_type_rpm + Length + Control)
   model.state.df.forest[[k]] <- ranger(form.state.df.forest,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
   print(model.state.df.forest[[k]]$variable.importance)
   print(rmse(predict(model.state.df.forest[[k]],df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),])$predictions,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE),]))
@@ -143,7 +143,7 @@ model.state.df.forest<-list()
 for(i in specieslist_OK){
   print(i)
   k=k+1
-  form.state.df.forest <- as.formula(nState ~ rpm + Length)
+  form.state.df.forest <- as.formula(nState ~ Pump_type_rpm + Length)
   model.state.df.forest[[k]] <- ranger(form.state.df.forest,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),],num.trees=100,respect.unordered.factors = "order",importance="permutation")
   print(model.state.df.forest[[k]]$variable.importance)
   print(rmse(predict(model.state.df.forest[[k]],df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),])$predictions,df_OK_f[which(df_OK_f$Species==i & is.na(df_OK_f$Length)==FALSE & df_OK_f$Control=="pump"),]))

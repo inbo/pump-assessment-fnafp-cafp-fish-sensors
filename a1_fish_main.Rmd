@@ -179,7 +179,7 @@ ggplot(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="pump" & df_O
 # Run aggregation function to yield number of recaptured fish per scenario for OK
 df_OK_f_stat_level2a <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$number_recaptured>=10),],c("Species", "Pump_type", "rpm", "rpm", "Control", "State")) 
 df_OK_f_stat_level2b <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$Frequency_theoretical==df_OK_f_stat_level1$Frequency),],c("Species", "Pump_type", "rpm", "rpm", "Control", "Fin_cut")) 
-write.csv(df_OK_f_stat_level2a,"./data/fish/internal/additional/df_OK_f_stat_level2a.csv")
+write.csv(df_OK_f_stat_level2a,"./data/fish/internal/NP/df_OK_f_stat_level2a.csv")
 write.csv(df_OK_f_stat_level2b,"./data/fish/internal/additional/df_OK_f_stat_level2b.csv")
 
 # Plots depicting average, minimum and maximum for the percentage Alive versus Dead of recaptured fish per scenario for OK
@@ -223,10 +223,10 @@ df_OK_f_stat_level1_long$percentage_injury_test <- df_OK_f_stat_level1_long$Valu
 df_OK_f_stat_level2a %>% gather(.,key = Injury, Value, Class_1:Class_4, na.rm = FALSE) -> df_OK_f_stat_level2a_long
 df_OK_f_stat_level2a_long$percentage_injury_test <- df_OK_f_stat_level2a_long$Value/df_OK_f_stat_level2a_long$number_recaptured
 
-write.csv(df_OK_f_long,"./data/fish/internal/additional/df_OK_f_long.csv")
-write.csv(df_OK_f_long_type,"./data/fish/internal/additional/df_OK_f_long_type.csv")
-write.csv(df_OK_n_ad_long,"./data/fish/internal/additional/df_OK_n_ad_long.csv")
-write.csv(df_OK_n_ad_long_type,"./data/fish/internal/additional/df_OK_n_ad_long_type.csv")
+write.csv(df_OK_f_long,"./data/fish/internal/df_OK_f_long.csv")
+write.csv(df_OK_f_long_type,"./data/fish/internal/df_OK_f_long_type.csv")
+write.csv(df_OK_n_ad_long,"./data/fish/internal/df_OK_n_ad_long.csv")
+write.csv(df_OK_n_ad_long_type,"./data/fish/internal/df_OK_n_ad_long_type.csv")
 write.csv(df_OK_f_stat_level1_long,"./data/fish/internal/additional/df_OK_f_stat_level1_long.csv")
 write.csv(df_OK_f_stat_level2a_long,"./data/fish/internal/additional/df_OK_f_stat_level2a_long.csv")
 ```

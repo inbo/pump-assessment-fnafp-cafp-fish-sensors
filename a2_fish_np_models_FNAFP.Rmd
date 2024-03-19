@@ -26,7 +26,7 @@ source("./source/functions/rmse.R")
 
 ```{r include=FALSE}
 df_OK_f <- read.csv("./data/fish/internal/df_OK_f.csv")
-df_OK_f_stat_level2a <- read.csv("./data/fish/internal/additional/df_OK_f_stat_level2a.csv")
+df_OK_f_stat_level2a <- read.csv("./data/fish/internal/NP/df_OK_f_stat_level2a.csv")
 ```
 
 ```{r include=FALSE}

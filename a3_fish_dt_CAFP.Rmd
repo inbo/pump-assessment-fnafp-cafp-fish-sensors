@@ -43,8 +43,8 @@ df_OK_f$State <- relevel(df_OK_f$State, ref = "Dead")
 ```
 
 ```{r}
-df_OK_f_long_type <- read.csv("./data/fish/internal/additional/df_OK_f_long_type.csv")
-df_OK_n_ad_long_type <- read.csv("./data/fish/internal/additional/df_OK_n_ad_long_type.csv")
+df_OK_f_long_type <- read.csv("./data/fish/internal/df_OK_f_long_type.csv")
+df_OK_n_ad_long_type <- read.csv("./data/fish/internal/df_OK_n_ad_long_type.csv")
 df_OK_f_long_type <- bind_rows(df_OK_f_long_type,df_OK_n_ad_long_type)
 df_OK_f_long_type<- df_OK_f_long_type[which(df_OK_f_long_type$Species=="roach"),]
 

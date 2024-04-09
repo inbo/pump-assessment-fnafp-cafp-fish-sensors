@@ -339,14 +339,14 @@ emm_multinom2_plot_with_length[[k]]<-plot(emm_multinom2_with_length[[k]],PIs=FAL
 print(emm_multinom2_plot_with_length[[k]])
 ```
 
-```{r echo=FALSE}
+```{r eval=FALSE}
 k=2
 sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for roach + original injury class")
 p[[k]] %>% kable(caption="p-values of the model for roach + original injury class")
 exp(coef(model.injury.df.multinom[[k]])) %>% kable(caption="Relative risk ratio (RR) for a one-unit increase in the considered variable to be identified as the considered class vs no injury. RR<1: Decrease of the probability of the considered factor versus the reference class (No injury). RR>1: Increase of the probability of the considered factor versus the reference class (No injury)")
 ```
 
-```{r echo=FALSE}
+```{r eval=FALSE}
 k=3
 sum.mult[[k]]$coefficients %>% kable(caption="Coefficients of the model for eel + original injury class")
 p[[k]] %>% kable(caption="p-values of the model for eel + original injury class")

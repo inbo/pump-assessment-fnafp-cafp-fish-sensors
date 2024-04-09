@@ -68,9 +68,9 @@ injurylist_type_OK <- read.csv("./data/fish/internal/injurylist_type_OK.csv")[,2
 ```
 
 ```{r}
-df_OK_f$Type=df_OK_f$Control
-df_OK_f_long_type$Type=df_OK_f_long_type$Control
-df_OK_f_long$Type=df_OK_f_long$Control
+df_OK_f$Control_or_pump=df_OK_f$Control
+df_OK_f_long_type$Control_or_pump=df_OK_f_long_type$Control
+df_OK_f_long$Control_or_pump=df_OK_f_long$Control
 ```
 
 ## Methodology
@@ -88,7 +88,7 @@ pdf("./figures/manuscript/dt_mort.pdf")
 par(mfrow = c(1,2))
 
 # CRT for state OK 
-form.state.df.tree <- as.formula(State ~ rpm + Type + Species + Length)
+form.state.df.tree <- as.formula(State ~ rpm + Control_or_pump + Species + Length)
 model.state.df.tree <- rpart(form.state.df.tree,df_OK_f,control=control)
 a<-fancyRpartPlot(model.state.df.tree,main="all species",box.palette=color.selection,palettes = "PuRd")
 a
@@ -108,7 +108,7 @@ model.state.df.tree<-list()
 b<-list()
 for(i in specieslist_OK[1]){
   k=k+1
-  form.state.df.tree <- as.formula(State ~ rpm + Length + Type)
+  form.state.df.tree <- as.formula(State ~ rpm + Length + Control_or_pump)
   model.state.df.tree[[k]] <- rpart(form.state.df.tree,df_OK_f[which(df_OK_f$Species==i),],control=control)
   b[[k]]<-fancyRpartPlot(model.state.df.tree[[k]],main=paste(i),box.palette=color.selection,palettes = "PuRd")
   b[[k]]
@@ -146,7 +146,7 @@ par(mfrow = c(1,2))
 
 #df_OK_f_long_type <-df_OK_f_long_type[order(df_OK_f_long_type$Injury),]
 
-form.state.df.tree <- as.formula(Injury ~ Species + rpm + Type + Length)
+form.state.df.tree <- as.formula(Injury ~ Species + rpm + Control_or_pump + Length)
 model.injury.df.tree <- rpart(form.state.df.tree, data = df_OK_f_long_type,control=control)
 c<-fancyRpartPlot(model.injury.df.tree,main="full data",box.palette = color.selection, legend.x = NA, palettes = "PuRd",xflip=TRUE)
 c
@@ -157,7 +157,7 @@ k=0
 d<-list()
 for(i in "bream"){
   k=k+1
-  form.state.df.tree <- as.formula(Injury ~ rpm + Type + Length)
+  form.state.df.tree <- as.formula(Injury ~ rpm + Control_or_pump + Length)
   model.injury.df.tree[[k]] <- rpart(form.state.df.tree, data = df_OK_f_long_type[which(df_OK_f_long_type$Species==i),],control=control)
   d[[k]]<-fancyRpartPlot(model.injury.df.tree[[k]],main=paste(i),box.palette = color.selection, legend.x = NA, palettes = "PuRd",xflip=TRUE)
   d[[k]]
@@ -178,7 +178,7 @@ color.selection <- "GnYlRd"
 par(mfrow = c(1,1))
 
 pdf("./figures/manuscript/dt_injury_type_all.pdf")
-form.state.df.tree <- as.formula(Injury ~ Species + rpm + Type + Length)
+form.state.df.tree <- as.formula(Injury ~ Species + rpm + Control_or_pump + Length)
 model.injury.df.tree <- rpart(form.state.df.tree, data = df_OK_f_long,control=control)
 e<-fancyRpartPlot(model.injury.df.tree,main="full data",box.palette = color.selection, legend.x = NA, palettes = "PuRd", xflip=TRUE)
 e
@@ -191,7 +191,7 @@ f<-list()
 for(i in specieslist_OK[c(1:2)]){
   k=k+1
   pdf(paste0("./figures/manuscript/dt_injury_type_",i,".pdf"))
-  form.state.df.tree <- as.formula(Injury ~ rpm + Type + Length)
+  form.state.df.tree <- as.formula(Injury ~ rpm + Control_or_pump + Length)
   model.injury.df.tree[[k]] <- rpart(form.state.df.tree, data = df_OK_f_long[which(df_OK_f_long$Species==i),],control=control)
   f[[k]]<-fancyRpartPlot(model.injury.df.tree[[k]],main=paste(i),box.palette = color.selection, legend.x = NA, palettes = "PuRd", xflip=TRUE)
   f[[k]]

@@ -15,7 +15,7 @@ clean_data_OK<-function(data,Controle,outlier.removal=FALSE){
   data$SampleSize<-NA
   data$Capture_Location<-NA
   data$Location<-"OK"
-  data$Pump_type<-"F/N"
+  data$Pump_type<-"FNAFP"
   data$Individuals_ID=c(1:nrow(data))
   
   data<-data[data$Species != c('baars'),]

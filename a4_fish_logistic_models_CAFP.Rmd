@@ -125,8 +125,8 @@ for(i in "roach"){
   df_OK_f_temp$pred=predict(model.state.df.species.bern.PI[[k]],df_OK_f_temp,type="response")
   df_OK_f_temp$logit=log(df_OK_f_temp$pred/(1-df_OK_f_temp$pred))
   
-  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="F/N - 468 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
-  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="F/N - 550 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
+  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="FNAFP - 468 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
+  print(ggplot(df_OK_f_temp[which(df_OK_f_temp$Pump_type_rpm=="FNAFP - 550 rpm"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess"))
   
   plot(model.state.df.species.bern.PI[[k]], which = 4, id.n = 3)
   plot(model.state.df.species.bern.PI[[k]], which = 5)

@@ -83,9 +83,9 @@ res %>% kable(caption="Pearson correlation coefficient of the different assessed
 ## Boxplots
 
 ```{r}
-cmpr<-list(c('Axial','F/N - 468 rpm'),        
- c('Axial','F/N - 550 rpm'),        
- c('F/N - 468 rpm','F/N - 550 rpm')
+cmpr<-list(c('CAFP','FNAFP - 468 rpm'),        
+ c('CAFP','FNAFP - 550 rpm'),        
+ c('FNAFP - 468 rpm','FNAFP - 550 rpm')
  )
 symnum.args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
 ```
@@ -98,16 +98,16 @@ print(a)
 Scenarios with a higher LRP, have a lower nadir pressure and a higher higher risk of barotrauma.
 
 ```{r}
-cmpr<-list(c('Axial','F/N - 468 rpm Ctrl'),
- c('Axial','F/N - 468 rpm'),        
- c('Axial','F/N - 550 rpm Ctrl'),
- c('Axial','F/N - 550 rpm'),        
- c('F/N - 468 rpm Ctrl','F/N - 468 rpm'),        
- c('F/N - 468 rpm Ctrl','F/N - 550 rpm Ctrl'),
- c('F/N - 468 rpm Ctrl','F/N - 550 rpm'),
- c('F/N - 468 rpm','F/N - 550 rpm'),
- c('F/N - 468 rpm','F/N - 550 rpm Ctrl'),
- c('F/N - 550 rpm Ctrl','F/N - 550 rpm')
+cmpr<-list(c('CAFP','FNAFP - 468 rpm Ctrl'),
+ c('CAFP','FNAFP - 468 rpm'),        
+ c('CAFP','FNAFP - 550 rpm Ctrl'),
+ c('CAFP','FNAFP - 550 rpm'),        
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 468 rpm'),        
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 550 rpm Ctrl'),
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 550 rpm'),
+ c('FNAFP - 468 rpm','FNAFP - 550 rpm'),
+ c('FNAFP - 468 rpm','FNAFP - 550 rpm Ctrl'),
+ c('FNAFP - 550 rpm Ctrl','FNAFP - 550 rpm')
  )
 symnum.args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
 ```
@@ -439,10 +439,10 @@ temp<-file.final.normalization
            )
 g<-ggplot(temp,aes(x=s_rounded,y=mean,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=lower_bound_mean, ymax=upper_bound_mean, fill=scenario), alpha=0.2, colour = NA) + ylim(600,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(A)", size=6) #+ ggtitle("Time series plots of pressure, averaged over all sensors with 95% CI")
 h<-ggplot(temp,aes(x=s_rounded,y=median,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=q25, ymax=q75, fill=scenario), alpha=0.2, colour = NA) + ylim(600,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(B)", size=6) #+ ggtitle("Time series plots of pressure, median over all sensors with Q25% and Q75%")
-i<-ggplot(temp[which(temp$scenario=="F/N - 468 rpm" | temp$scenario=="F/N - 550 rpm"),],aes(x=s_rounded,y=mean,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=lower_bound_mean, ymax=upper_bound_mean, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(A)", size=6) #+ ggtitle("Time series plots of pressure, averaged over all sensors with 95% CI")
-j<-ggplot(temp[which(temp$scenario=="F/N - 468 rpm" | temp$scenario=="F/N - 550 rpm"),],aes(x=s_rounded,y=median,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=q25, ymax=q75, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(B)", size=6) #+ ggtitle("Time series plots of pressure, median over all sensors with Q25% and Q75%")
-k<-ggplot(temp[which(temp$scenario=="F/N - 468 rpm" | temp$scenario=="F/N - 550 rpm"),],aes(x=s_rounded,y=mean,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=lower_bound_mean, ymax=upper_bound_mean, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlim(0.4,0.6) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=0.6-0.2/10, y=1300, label= "(C)", size=6) #+ ggtitle("Time series plots of pressure, averaged over all sensors with 95% CI")
-l<-ggplot(temp[which(temp$scenario=="F/N - 468 rpm" | temp$scenario=="F/N - 550 rpm"),],aes(x=s_rounded,y=median,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=q25, ymax=q75, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlim(0.4,0.6) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=0.6-0.2/10, y=1300, label= "(D)", size=6) #+ ggtitle("Time series plots of pressure, median over all sensors with Q25% and Q75%")
+i<-ggplot(temp[which(temp$scenario=="FNAFP - 468 rpm" | temp$scenario=="FNAFP - 550 rpm"),],aes(x=s_rounded,y=mean,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=lower_bound_mean, ymax=upper_bound_mean, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(A)", size=6) #+ ggtitle("Time series plots of pressure, averaged over all sensors with 95% CI")
+j<-ggplot(temp[which(temp$scenario=="FNAFP - 468 rpm" | temp$scenario=="FNAFP - 550 rpm"),],aes(x=s_rounded,y=median,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=q25, ymax=q75, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=1-1/10, y=1300, label= "(B)", size=6) #+ ggtitle("Time series plots of pressure, median over all sensors with Q25% and Q75%")
+k<-ggplot(temp[which(temp$scenario=="FNAFP - 468 rpm" | temp$scenario=="FNAFP - 550 rpm"),],aes(x=s_rounded,y=mean,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=lower_bound_mean, ymax=upper_bound_mean, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlim(0.4,0.6) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=0.6-0.2/10, y=1300, label= "(C)", size=6) #+ ggtitle("Time series plots of pressure, averaged over all sensors with 95% CI")
+l<-ggplot(temp[which(temp$scenario=="FNAFP - 468 rpm" | temp$scenario=="FNAFP - 550 rpm"),],aes(x=s_rounded,y=median,color=scenario))+geom_line(alpha=0.5)+theme_minimal()+geom_ribbon(aes(ymin=q25, ymax=q75, fill=scenario), alpha=0.2, colour = NA) + ylim(900,1300) + xlim(0.4,0.6) + xlab("Rescaled time") + ylab("Pressure (hPa)") + annotate("text", x=0.6-0.2/10, y=1300, label= "(D)", size=6) #+ ggtitle("Time series plots of pressure, median over all sensors with Q25% and Q75%")
 g
 h
 i
@@ -450,7 +450,7 @@ j
 k
 l
 pdf("./figures/manuscript/timeseries_all.pdf")
-ggarrange(g,h,common.legend = TRUE,ncol=1)
+ggarrange(g,h,legend="right",common.legend = TRUE,ncol=1)
 dev.off()
 pdf("./figures/manuscript/timeseries_selection.pdf")
 ggarrange(i,j,k,l,common.legend = TRUE)

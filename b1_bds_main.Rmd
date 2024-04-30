@@ -64,11 +64,11 @@ file.final <- file.complete
 
 rm(file.complete)
 
-file.final$scenario[which(file.final$scenario=="Old_Axial_n_6")]<-"Axial"
-file.final$scenario[which(file.final$scenario=="Pump_40Hz_Control_n_13")]<-"F/N - 468 rpm Ctrl"
-file.final$scenario[which(file.final$scenario=="Pump_40Hz_n_64")]<-"F/N - 468 rpm"
-file.final$scenario[which(file.final$scenario=="Pump_47Hz_Control_n_15")]<-"F/N - 550 rpm Ctrl"
-file.final$scenario[which(file.final$scenario=="Pump_47Hz_n_51")]<-"F/N - 550 rpm"
+file.final$scenario[which(file.final$scenario=="Old_Axial_n_6")]<-"CAFP"
+file.final$scenario[which(file.final$scenario=="Pump_40Hz_Control_n_13")]<-"FNAFP - 468 rpm Ctrl"
+file.final$scenario[which(file.final$scenario=="Pump_40Hz_n_64")]<-"FNAFP - 468 rpm"
+file.final$scenario[which(file.final$scenario=="Pump_47Hz_Control_n_15")]<-"FNAFP - 550 rpm Ctrl"
+file.final$scenario[which(file.final$scenario=="Pump_47Hz_n_51")]<-"FNAFP - 550 rpm"
 
 
 file.final$P..hPa.<-rowMeans(file.final[,c("PC..hPa.","PR..hPa.","PL..hPa.")],na.rm=TRUE)
@@ -351,11 +351,11 @@ for (i in sensors){
 # x mbar crossing for pressure, AFTER injection event
 file.final.P0 <- file.final %>%
   group_by(sensor) %>%
-  filter((scenario=="Axial" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
-         (scenario=="F/N - 468 rpm" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
-         (scenario=="F/N - 550 rpm" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
-         (scenario=="F/N - 468 rpm Ctrl" & P..hPa.>1070 & relative.to.injection > 50*0.01)| # 1070 mbar crossing for pressure, AFTER injection event
-         (scenario=="F/N - 550 rpm Ctrl" & P..hPa.>1070 & relative.to.injection > 50*0.01)) %>% # 1070 mbar crossing for pressure, AFTER injection event
+  filter((scenario=="CAFP" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
+         (scenario=="FNAFP - 468 rpm" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
+         (scenario=="FNAFP - 550 rpm" & P..hPa.>1050 & relative.to.injection > 50*0.01)| # 1050 mbar crossing for pressure, AFTER injection event
+         (scenario=="FNAFP - 468 rpm Ctrl" & P..hPa.>1070 & relative.to.injection > 50*0.01)| # 1070 mbar crossing for pressure, AFTER injection event
+         (scenario=="FNAFP - 550 rpm Ctrl" & P..hPa.>1070 & relative.to.injection > 50*0.01)) %>% # 1070 mbar crossing for pressure, AFTER injection event
   filter(Time..s.==min(Time..s.)) %>%
   slice(1) %>%
   ungroup()
@@ -377,9 +377,9 @@ for (i in sensors){
 
 file.final.P1 <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="Axial" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)| # Pressure maxima between the moment of nadir and one second before the moment of nadir
-         (scenario=="F/N - 468 rpm" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)| # Pressure maxima between the moment of nadir and one second before the moment of nadir
-         (scenario=="F/N - 550 rpm" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)) %>% # Pressure maxima between the moment of nadir and one second before the moment of nadir
+  filter((scenario=="CAFP" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)| # Pressure maxima between the moment of nadir and one second before the moment of nadir
+         (scenario=="FNAFP - 468 rpm" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)| # Pressure maxima between the moment of nadir and one second before the moment of nadir
+         (scenario=="FNAFP - 550 rpm" & relative.to.nadir>(-100*0.01) & relative.to.nadir<0)) %>% # Pressure maxima between the moment of nadir and one second before the moment of nadir
   filter(P..hPa.==max(P..hPa.)) %>%  
   filter(Time..s.==max(Time..s.)) %>%  
   slice(1) %>%
@@ -402,9 +402,9 @@ for (i in sensors){
 
 file.final.P2 <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="Axial" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)| #maxima immediately after blade nadir
-         (scenario=="F/N - 468 rpm" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)| # maxima immediately after blade nadir
-         (scenario=="F/N - 550 rpm" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)) %>% # maxima immediately after blade nadir
+  filter((scenario=="CAFP" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)| #maxima immediately after blade nadir
+         (scenario=="FNAFP - 468 rpm" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)| # maxima immediately after blade nadir
+         (scenario=="FNAFP - 550 rpm" & relative.to.nadir<(100*0.01) & relative.to.nadir>0)) %>% # maxima immediately after blade nadir
   filter(P..hPa.==max(P..hPa.)) %>% 
   filter(Time..s.==min(Time..s.)) %>%  
   slice(1) %>%
@@ -430,9 +430,9 @@ for (i in sensors){
 
 file.final.P3 <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="Axial" & relative.to.P2<(100*0.01) & relative.to.P2>0)| # minima immediately after second local maxima (P2)
-         (scenario=="F/N - 468 rpm" & relative.to.P2<(100*0.01) & relative.to.P2>0)| # minima immediately after second local maxima (P2)
-         (scenario=="F/N - 550 rpm" & relative.to.P2<(100*0.01) & relative.to.P2>0)) %>% # minima immediately after second local maxima (P2)
+  filter((scenario=="CAFP" & relative.to.P2<(100*0.01) & relative.to.P2>0)| # minima immediately after second local maxima (P2)
+         (scenario=="FNAFP - 468 rpm" & relative.to.P2<(100*0.01) & relative.to.P2>0)| # minima immediately after second local maxima (P2)
+         (scenario=="FNAFP - 550 rpm" & relative.to.P2<(100*0.01) & relative.to.P2>0)) %>% # minima immediately after second local maxima (P2)
   filter(P..hPa.==min(P..hPa.)) %>% 
   filter(Time..s.==min(Time..s.)) %>%  
   slice(1) %>%
@@ -455,9 +455,9 @@ for (i in sensors){
 
 file.final.P4 <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="Axial" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)| # Local maxima of the control region, as sensor passes into the cage / net
-         (scenario=="F/N - 468 rpm" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)| # Local maxima of the control region, as sensor passes into the cage / net
-         (scenario=="F/N - 550 rpm" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)) %>% # Local maxima of the control region, as sensor passes into the cage / net
+  filter((scenario=="CAFP" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)| # Local maxima of the control region, as sensor passes into the cage / net
+         (scenario=="FNAFP - 468 rpm" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)| # Local maxima of the control region, as sensor passes into the cage / net
+         (scenario=="FNAFP - 550 rpm" & relative.to.P3 < (1500*0.01) & relative.to.P3 > 0)) %>% # Local maxima of the control region, as sensor passes into the cage / net
   filter(P..hPa.==max(P..hPa.)) %>% 
   filter(Time..s.==min(Time..s.)) %>%  
   slice(1) %>%
@@ -471,8 +471,8 @@ file.final.P4$stage<-"P4"
 
 file.final.P4_control <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="F/N - 468 rpm Ctrl" & relative.to.nadir < 2000*0.01 & relative.to.nadir > 0)| # Peak pressure after P0
-         (scenario=="F/N - 550 rpm Ctrl" & relative.to.nadir < 2000*0.01 & relative.to.nadir > 0)) %>% # Peak pressure after P0
+  filter((scenario=="FNAFP - 468 rpm Ctrl" & relative.to.nadir < 2000*0.01 & relative.to.nadir > 0)| # Peak pressure after P0
+         (scenario=="FNAFP - 550 rpm Ctrl" & relative.to.nadir < 2000*0.01 & relative.to.nadir > 0)) %>% # Peak pressure after P0
   filter(P..hPa.==max(P..hPa.)) %>% 
   filter(Time..s.==max(Time..s.)) %>%  
   slice(1) %>%
@@ -506,11 +506,11 @@ for (i in sensors){
 
 file.final.P5 <- file.final %>%                                
   group_by(sensor) %>%
-  filter((scenario=="Axial" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
-         (scenario=="F/N - 468 rpm" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
-         (scenario=="F/N - 550 rpm" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
-         (scenario=="F/N - 468 rpm Ctrl" & local_minima_P==TRUE & relative.to.P4>(2000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
-         (scenario=="F/N - 550 rpm Ctrl" & local_minima_P==TRUE & relative.to.P4>(2000*0.01))) %>% # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
+  filter((scenario=="CAFP" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
+         (scenario=="FNAFP - 468 rpm" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
+         (scenario=="FNAFP - 550 rpm" & local_minima_P==TRUE & relative.to.P4>(1000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
+         (scenario=="FNAFP - 468 rpm Ctrl" & local_minima_P==TRUE & relative.to.P4>(2000*0.01))| # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
+         (scenario=="FNAFP - 550 rpm Ctrl" & local_minima_P==TRUE & relative.to.P4>(2000*0.01))) %>% # Pressure minima after peak, indicating the sensor is now in the cage, net or tailwater
   filter(Time..s.==min(Time..s.)) %>%  
   slice(1) %>%
   ungroup() 

@@ -15,7 +15,7 @@ source("./source/not_functions/libraries.R")
 ```
 
 ```{r}
-RUN=FALSE
+RUN=TRUE
 ```
 
 ```{r include=FALSE}

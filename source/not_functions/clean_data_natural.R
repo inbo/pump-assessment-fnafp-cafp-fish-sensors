@@ -15,7 +15,7 @@ clean_data_OK_natural<-function(data,Controle,outlier.removal=FALSE){
   data$SampleSize<-NA
   data$Capture_Location<-NA
   data$Location<-"OK"
-  data$Pump_type<-"Axial"
+  data$Pump_type<-"CAFP"
   data$Individuals_ID=c(1:nrow(data))
   
   drop_species<-c("baars","bittervoorn","blauwbandgrondel","snoek","paling")

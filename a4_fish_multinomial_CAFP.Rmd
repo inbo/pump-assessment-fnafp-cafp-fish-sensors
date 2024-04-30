@@ -219,8 +219,8 @@ for (k in specieslist_OK){
     df_OK_f_long_type.temp$pred=predict(model.assumptions,df_OK_f_long_type.temp,type="response")
     df_OK_f_long_type.temp$logit=log(df_OK_f_long_type.temp$pred/(1-df_OK_f_long_type.temp$pred))
   
-    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="F/N 468"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
-    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="F/N 550"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
+    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="FNAFP 468"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
+    print(ggplot(df_OK_f_long_type.temp[which(df_OK_f_long_type.temp$Pump_type_rpm=="FNAFP 550"),], aes(Length,logit)) + geom_point(size = 0.5, alpha = 0.5) + geom_smooth(method = "loess") + theme_bw())
   }
 }
 ```

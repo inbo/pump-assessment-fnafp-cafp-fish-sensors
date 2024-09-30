@@ -55,8 +55,10 @@ if (file.exists("data/bds/internal/All_BDS_data_OK.csv")==FALSE){
 rm(file.temp)
 ```
 
-#add column Δ P
-added column Plc and Prc, this are the absolute values of the difference between the left and central pressure sensor and the right and central pressure sensor respectivecly. 
+
+# Create new variables
+
+To identify ROIs, the average pressure (average of the measurements in the three spatial dimensions) was used (unless explicitly mentioned otherwise).
 
 ```{r}
 file.final <- file.complete
@@ -69,13 +71,9 @@ file.final$scenario[which(file.final$scenario=="Pump_40Hz_n_64")]<-"FNAFP - 468 
 file.final$scenario[which(file.final$scenario=="Pump_47Hz_Control_n_15")]<-"FNAFP - 550 rpm Ctrl"
 file.final$scenario[which(file.final$scenario=="Pump_47Hz_n_51")]<-"FNAFP - 550 rpm"
 
-#add columns Δ P
+
 file.final$P..hPa.<-rowMeans(file.final[,c("PC..hPa.","PR..hPa.","PL..hPa.")],na.rm=TRUE)
-file.final$Plc..hPa.<-abs(file.final$PC..hPa. - file.final$PL..hPa.)
-file.final$Prc..hPa.<-abs(file.final$PC..hPa. - file.final$PR..hPa.)
-
-
-
+  
 file.final <- file.final %>%
   group_by(sensor) %>%                  
   mutate(diff_sec = P..hPa. - lag(P..hPa.,n=1),
@@ -170,7 +168,8 @@ if (length(sensors.with.unlikely.injection)>=1){
 }
 ```
 
-#Shear stress threshold value
+#Create Shear stress dataframe
+threshold value
 Based on literature we know U needs to be between 5 and 15m/s? Therefore we made an Threshold value based on 5, 10 and 15 m/s. For the creation of the threshold value we made use of (url to Jeff's Github for excel file). 
 In this excel file we used the T on the 12/12/2018 and 13/12/2018, which is 4,5°C (see paper)
 
@@ -179,14 +178,45 @@ U = 5m/s: ΔP = 3,45 hPa
 U = 10m/s: ΔP = 4,86 hPa
 U = 15m/s: ΔP = 5,95 hPa
 
+```{r}
+#Length sensor
+L<- 0.01
 
+#velocity 
+U<- 5
+
+#temperature at the day we did the BDS test
+Temp.C. <- 4.5
+
+#calculate temperature depended variables
+rho <- (999.83952+16.945176*Temp.C.-0.0079870401*Temp.C.^2)/(1+0.01689785*Temp.C.)
+µ <- (exp(-3.7188+((578.919)/(-137.546+Temp.C.+273.15))))/1000
+
+#Calculate Reynolds number
+Re = (rho*U *L)/µ
+
+
+df_shear<-file.final %>% 
+  select(c(sensor, scenario, scenario_sensor, Time..s., PC..hPa.,PR..hPa.,PL..hPa.,PL..hPa., P..hPa.)) %>% 
+  group_by(sensor) %>%
+  mutate(
+    Prc..hPa. = abs(PC..hPa.- PR..hPa.), #difference in pressure between central and right sensor
+    Plc..hPa. = abs(PC..hPa.- PL..hPa.), #difference in pressure between central and left sensor
+    shearcr = (40*Prc..hPa.)/sqrt(Re), #Formula based on the equations from Archenbacks 
+    shearcl = (40*Plc..hPa.)/sqrt(Re),
+    straincr = shearcr/µ, #transformation to strain rate in orde to be able to compare to laboratory studies
+    straincl = shearcl/µ,
+    mean_strain = rowMeans(cbind(straincr, straincl),na.rm=TRUE )
+    ) %>% 
+    ungroup()  
+```
 
 
 
 # Check plots of Plc and Prc in function of time with the threshold values
 
 ```{r}
-scenario<-unique(file.final$scenario)
+scenario<-unique(df_shear$scenario)
 l <- list()
 k = 0
 
@@ -198,13 +228,13 @@ th15<-5.95
 
 
 for (s in scenario){
-  file.final.scenario<-file.final[which(file.final$scenario==s),]
-  sensors<-unique(file.final.scenario$sensor)
+  df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
+  sensors<-unique(df_shear.scenario$sensor)
   for (i in sensors[1:5]){
     k = k+1
-    file.final.sensor<-file.final.scenario[which(file.final.scenario$sensor==i),]
+    df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
     #create plot with 2 lines one for Plc and one for Prc
-     g <- ggplot(file.final.sensor, aes(x = Time..s.)) +
+     g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
             geom_line(aes(y = P..hPa., color = "P")) +   # Total pressure
             geom_line(aes(y = Plc..hPa., color = "Plc")) +   # First line for Plc
             geom_line(aes(y = Prc..hPa., color = "Prc")) +   # Second line for Prc
@@ -215,60 +245,22 @@ for (s in scenario){
             ggtitle(paste0(s, "/", i)) +
             scale_color_manual(name = "Legend", values = c("Plc" = "blue", "Prc" = "red", "th5" = "black", "th10" = "black","th15" = "black", "P" = "black"))  # Custom colors for each line
     l[[k]]<-ggplotly(g)
-    rm(file.final.sensor)
+    rm(df_shear.sensor)
   }
-  rm(file.final.scenario)
+  rm(df_shear.scenario)
 }
 l
 ```
 
+#visualize and create df of strain rate and time above threshold
+
 ```{r}
-scenario <- unique(file.final$scenario)
+scenario<-unique(df_shear$scenario)
 l <- list()
 k = 0
 
-# Define the threshold value
-threshold <- 3.45
-
-for (s in scenario){
-  file.final.scenario <- file.final[which(file.final$scenario == s), ]
-  sensors <- unique(file.final.scenario$sensor)
-  
-  for (i in sensors[1:5]){
-    k = k + 1
-    file.final.sensor <- file.final.scenario[which(file.final.scenario$sensor == i), ]
-    
-    # Create a plot with two lines, one for Plc and another for Prc
-    g <- ggplot(file.final.sensor, aes(x = Time..s.)) +
-            geom_line(aes(y = Plc..hPa., color = "Plc")) +   # First line for Plc
-            geom_line(aes(y = Prc..hPa., color = "Prc")) +   # Second line for Prc
-            geom_hline(yintercept = threshold, linetype = "dashed", color = "black", aes(label = "U = 5 m/s")) +  # Threshold line
-            theme_minimal() +
-            ggtitle(paste0(s, "/", i)) +
-            scale_color_manual(name = "Legend", values = c("Plc" = "blue", "Prc" = "red"))  # Custom colors for each line
-    
-    l[[k]] <- ggplotly(g)
-    
-    # Calculate the time for which Prc exceeds the threshold
-    prc_over_threshold <- file.final.sensor$Prc..hPa. > threshold
-    time_above_threshold <- sum(diff(file.final.sensor$Time..s.)[prc_over_threshold[-1]])  # Summing the time differences where Prc is above threshold
-    
-    print(paste0("Sensor: ", i, " for Scenario: ", s, " exceeds threshold for ", time_above_threshold, " seconds."))
-    
-    rm(file.final.sensor)
-  }
-  
-  rm(file.final.scenario)
-}
-
-```
-```{r}
-scenario <- unique(file.final$scenario)
-l <- list()
-k = 0
-
-# Define the threshold value
-threshold <- 3.45
+# Define the threshold value for strain rate s-1
+th<-500
 
 # Dataframe to store results
 over_threshold_df <- data.frame(Scenario = character(),
@@ -276,40 +268,38 @@ over_threshold_df <- data.frame(Scenario = character(),
                                 Start_Time = numeric(),
                                 End_Time = numeric(),
                                 Duration = numeric(),
-                                Avg_Prc = numeric(),
-                                Max_Prc = numeric(),
+                                Avg_strain = numeric(),
+                                Max_strain = numeric(),
                                 stringsAsFactors = FALSE)
 
 for (s in scenario){
-  file.final.scenario <- file.final[which(file.final$scenario == s), ]
-  sensors <- unique(file.final.scenario$sensor)
-  
+  df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
+  sensors<-unique(df_shear.scenario$sensor)
   for (i in sensors[1:5]){
-    k = k + 1
-    file.final.sensor <- file.final.scenario[which(file.final.scenario$sensor == i), ]
-    
-    # Create a plot with two lines, one for Plc and another for Prc
-    g <- ggplot(file.final.sensor, aes(x = Time..s.)) +
-            geom_line(aes(y = Plc..hPa., color = "Plc")) +   # First line for Plc
-            geom_line(aes(y = Prc..hPa., color = "Prc")) +   # Second line for Prc
-            geom_hline(yintercept = threshold, linetype = "dashed", color = "black") +  # Threshold line
+    k = k+1
+    df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
+    #create plot with 2 lines one for Plc and one for Prc
+     g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
+            geom_line(aes(y = straincr, color = "straincr")) +  
+            geom_line(aes(y = straincl, color = "straincl")) +  
+            geom_line(aes(y = mean_strain, color = "mean_strain")) +   
+            geom_hline(yintercept = th, linetype = "dashed", color = "black", aes(label = "U = 5 m/s")) +  # Threshold line 5 m/s
             theme_minimal() +
             ggtitle(paste0(s, "/", i)) +
-            scale_color_manual(name = "Legend", values = c("Plc" = "blue", "Prc" = "red"))  # Custom colors for each line
-    
-    l[[k]] <- ggplotly(g)
-    
-    # Identify where Prc exceeds the threshold
-    prc_above_threshold <- file.final.sensor$Prc..hPa. > threshold
+            scale_color_manual(name = "Legend", values = c("straincr" = "red", "straincr" = "green","mean_strain" = "blue","th" = "black"))  # Custom colors for each line
+    l[[k]]<-ggplotly(g)
+
+      # Identify where strain exceeds the threshold
+    above_threshold <- df_shear.sensor$mean_strain > th
     
     # Find the start and end of each "over-threshold" period
-    diff_prc <- c(FALSE, diff(prc_above_threshold) != 0)  # Detect changes in the logical vector
-    event_starts <- which(diff_prc & prc_above_threshold)
-    event_ends <- which(diff_prc & !prc_above_threshold) - 1
+    diff_mean_strain <- c(FALSE, diff(above_threshold) != 0)  # Detect changes in the logical vector
+    event_starts <- which(diff_mean_strain & above_threshold)
+    event_ends <- which(diff_mean_strain & !above_threshold) - 1
     
     # Handle if the period continues till the last row
     if (length(event_starts) > length(event_ends)) {
-      event_ends <- c(event_ends, nrow(file.final.sensor))
+      event_ends <- c(event_ends, nrow(df_shear.sensor))
     }
     
     # Loop through each "over-threshold" period
@@ -318,13 +308,13 @@ for (s in scenario){
       end_idx <- event_ends[j]
       
       # Get the time range
-      start_time <- file.final.sensor$Time..s.[start_idx]
-      end_time <- file.final.sensor$Time..s.[end_idx]
+      start_time <- df_shear.sensor$Time..s.[start_idx]
+      end_time <- df_shear.sensor$Time..s.[end_idx]
       duration <- end_time - start_time
       
-      # Calculate average and maximum Prc during the over-threshold period
-      avg_prc <- mean(file.final.sensor$Prc..hPa.[start_idx:end_idx], na.rm = TRUE)
-      max_prc <- max(file.final.sensor$Prc..hPa.[start_idx:end_idx], na.rm = TRUE)
+      # Calculate average and maximum strain during the over-threshold period
+      avg_mean_strain <- mean(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
+      max_mean_strain <- max(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
       
       # Append the result to the dataframe
       over_threshold_df <- rbind(over_threshold_df, data.frame(Scenario = s,
@@ -332,70 +322,28 @@ for (s in scenario){
                                                                Start_Time = start_time,
                                                                End_Time = end_time,
                                                                Duration = duration,
-                                                               Avg_Prc = avg_prc,
-                                                               Max_Prc = max_prc,
+                                                               Avg_mean_strain = avg_mean_strain,
+                                                               Max_mean_strain = max_mean_strain,
                                                                stringsAsFactors = FALSE))
     }
     
-    rm(file.final.sensor)
+    
+    
+    rm(df_shear.sensor)
   }
-  
-  rm(file.final.scenario)
+  rm(df_shear.scenario)
 }
-
-# Print the over-threshold dataframe
-print(over_threshold_df)
-
-
+l
 
 ```
-
 ```{r}
-scenario <- unique(file.final$scenario)
-l <- list()
-k = 0
-
-# Define the threshold value
-threshold <- 3.45
-
-for (s in scenario) {
-  file.final.scenario <- file.final[which(file.final$scenario == s), ]
-  sensors <- unique(file.final.scenario$sensor)
+over_threshold_df_sum<-over_threshold_df %>%
+  group_by(Scenario, Sensor) %>% 
+  summarise(
+    Duration = sum(Duration),
+    Avg_mean_strain = mean(Avg_mean_strain),
+    Max_mean_strain = max(Max_mean_strain)
+  )
   
-  for (i in sensors[1:5]) {
-    k = k + 1
-    file.final.sensor <- file.final.scenario[which(file.final.scenario$sensor == i), ]
-    
-    # Create a plot with two lines, one for Plc and another for Prc
-    g <- ggplot(file.final.sensor, aes(x = Time..s.)) +
-            geom_line(aes(y = Plc..hPa., color = "Plc")) +   # First line for Plc
-            geom_line(aes(y = Prc..hPa., color = "Prc")) +   # Second line for Prc
-            geom_hline(yintercept = threshold, linetype = "dashed", color = "black") +  # Threshold line
-            theme_minimal() +
-            ggtitle(paste0(s, "/", i)) +
-            scale_color_manual(name = "Legend", values = c("Plc" = "blue", "Prc" = "red"))  # Custom colors for each line
-    
-    l[[k]] <- ggplotly(g)
-    
-    # Calculate the time for which Prc exceeds the threshold
-    prc_over_threshold <- file.final.sensor$Prc..hPa. > threshold
-    time_above_threshold <- sum(diff(file.final.sensor$Time..s.)[prc_over_threshold[-1]])  # Summing the time differences where Prc is above threshold
-    
-    # Calculate average and maximum Prc values for the periods where Prc exceeds the threshold
-    avg_prc_above_threshold <- mean(file.final.sensor$Prc..hPa.[prc_over_threshold], na.rm = TRUE)
-    max_prc_above_threshold <- max(file.final.sensor$Prc..hPa.[prc_over_threshold], na.rm = TRUE)
-    
-    # Print the results
-    print(paste0("Sensor: ", i, " for Scenario: ", s, 
-                 " exceeds threshold for ", time_above_threshold, " seconds. ",
-                 "Average Prc: ", round(avg_prc_above_threshold, 2), " hPa, ",
-                 "Max Prc: ", round(max_prc_above_threshold, 2), " hPa."))
-    
-    rm(file.final.sensor)
-  }
-  
-  rm(file.final.scenario)
-}
-
 
 ```

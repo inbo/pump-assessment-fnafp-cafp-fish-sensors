@@ -345,5 +345,13 @@ over_threshold_df_sum<-over_threshold_df %>%
     Max_mean_strain = max(Max_mean_strain)
   )
   
+ggplot(over_threshold_df_sum, aes(x = Scenario, y = Duration)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of Duration for Each Scenario",
+       x = "Scenario",
+       y = "Time over threshold (s)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+

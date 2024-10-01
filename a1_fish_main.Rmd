@@ -143,7 +143,7 @@ rm(df_OK_f_temp,df_OK_f_temp_too_few_samples)
 # Number of recaptured individuals per scenario (n) and total number of recaptured individuals per species (Total) for OK
 df_OK_f %>% mutate(number_of_released_fish_per_scenario = replace(number_of_released_fish_per_scenario, Frequency_theoretical != Frequency, NA)) %>%
   group_by(Species, Pump_type, rpm, Control) %>%
-  summarise(number_of_released_fish_per_scenario=mean(number_of_released_fish_per_scenario,na.rm=TRUE),n = n()) %>%
+  summarise(number_of_released_fish_per_scenario=mean(number_of_released_fish_per_scenario,na.rm=TRUE),n = n(),length=round(mean(Length)),weigth=round(mean(Weight))) %>%
   ungroup() %>%
   group_by(Species) %>%
   mutate(recapture=n/number_of_released_fish_per_scenario,Total = sum(n)) %>%

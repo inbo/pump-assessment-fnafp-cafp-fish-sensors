@@ -1,0 +1,357 @@
+---
+title: "bds_shear"
+author: "Sarah Broos"
+date: "2024-09-30"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, echo=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+# import libraries from file
+source("./source/not_functions/libraries.R")
+source("./source/functions/correct_ROI_manually.R")
+```
+
+```{r}
+if (file.exists("./data/bds/internal/Manually_changed_ROI.csv")) {
+ unlink("./data/bds/internal/Manually_changed_ROI.csv")
+ print("File is deleted..")
+} else{
+ print("File not exists..")
+}
+```
+
+# Read in data, correct column names if necessary and rbind into 1 file
+
+```{r}
+if (file.exists("data/bds/internal/All_BDS_data_OK.csv")==FALSE){
+  list.dir<-list.dirs(path = "./data/bds/external/")
+  for (i in 2:length(list.dir)){
+    list.file<-list.files(path=list.dir[[i]], pattern=".csv", all.files=TRUE,full.names=TRUE)
+    for (j in 1:length(list.file)){
+      file.temp<-read.csv(list.file[j])
+      if (any(colnames(file.temp)=="Time..ms.")){colnames(file.temp)[which(names(file.temp) == "Time..ms.")] <- "Time..s."}
+      if (any(colnames(file.temp)=="AX..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AX..m.s2.")] <- "AXEarth..m.s2."}
+      if (any(colnames(file.temp)=="AY..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AY..m.s2.")] <- "AYEarth..m.s2."}
+      if (any(colnames(file.temp)=="AZ..m.s2.")){colnames(file.temp)[which(names(file.temp) == "AZ..m.s2.")] <- "AZEarth..m.s2."}
+      file.temp$scenario<-str_split(list.file[j],"/")[[1]][5]
+      file.temp$sensor<-gsub(".csv","",str_split(list.file[j],"/")[[1]][6])
+      file.temp$scenario_sensor<-paste(file.temp$scenario,file.temp$sensor,sep="/")
+      if (j==1){file=file.temp} 
+      if (j>1){file=smartbind(file,file.temp)}
+    }
+    if (i==2){file.complete=file} 
+    if (i>2){file.complete=smartbind(file.complete,file)}
+  }
+  file.complete <- file.complete[which(file.complete$Time..s.<100),]
+  write.csv(file.complete,"data/bds/internal/All_BDS_data_OK.csv")
+} else {file.complete<-read.csv("data/bds/internal/All_BDS_data_OK.csv")}
+rm(file.temp)
+```
+
+
+# Create new variables
+
+To identify ROIs, the average pressure (average of the measurements in the three spatial dimensions) was used (unless explicitly mentioned otherwise).
+
+```{r}
+file.final <- file.complete
+
+rm(file.complete)
+
+file.final$scenario[which(file.final$scenario=="Old_Axial_n_6")]<-"CAFP"
+file.final$scenario[which(file.final$scenario=="Pump_40Hz_Control_n_13")]<-"FNAFP - 468 rpm Ctrl"
+file.final$scenario[which(file.final$scenario=="Pump_40Hz_n_64")]<-"FNAFP - 468 rpm"
+file.final$scenario[which(file.final$scenario=="Pump_47Hz_Control_n_15")]<-"FNAFP - 550 rpm Ctrl"
+file.final$scenario[which(file.final$scenario=="Pump_47Hz_n_51")]<-"FNAFP - 550 rpm"
+
+
+file.final$P..hPa.<-rowMeans(file.final[,c("PC..hPa.","PR..hPa.","PL..hPa.")],na.rm=TRUE)
+  
+file.final <- file.final %>%
+  group_by(sensor) %>%                  
+  mutate(diff_sec = P..hPa. - lag(P..hPa.,n=1),
+         diff_sec_sgolayfilt = sgolayfilt(P..hPa.,2,11) - lag(sgolayfilt(P..hPa.,2,11),n=1),
+         window.sd = rollapply(P..hPa.,11,sd,align='center',fill=NA)) %>% 
+  ungroup()  
+```
+
+# Overview of scenarios
+
+```{r}
+file.final %>% group_by(scenario) %>% distinct(scenario, sensor) %>% count() %>% kable(caption="Number of sensors per scenario")
+```
+
+
+# Determine the moment of injection
+
+The moment of injection was the first moment in time at which all three pressure measurements were higher than 1005 hPa.  
+
+```{r}
+file.final.injection <- file.final %>%                                
+  group_by(sensor) %>%                  
+  filter(PL..hPa. > 1005 & PC..hPa. > 1005 & PR..hPa. > 1005) %>%  
+  slice(1) %>%                       
+  ungroup()  
+
+file.final.injection$stage <- 'injection'
+```
+
+# Assess whether there are any sensors that were not given an injection moment
+
+Due to faulty PL measurements, 5 sensors were not assigned a moment of injection. 
+
+```{r}
+sensors.without.injection <- unique(file.final$sensor)[which(unique(file.final$sensor) %in% unique(file.final.injection$sensor)==FALSE)]
+sensors.without.injection
+
+if (length(sensors.without.injection)>=1){
+
+  for (i in sensors.without.injection){
+    file.final.temp<-file.final[which(file.final$sensor==i),]
+    g<-ggplot(file.final.temp,aes(x=Time..s.,y=P..hPa.))+geom_line()+theme_minimal()+ggtitle(i)
+    print(g)
+    rm(file.final.temp)
+  }
+  
+  file.final.injection.extra <- file.final %>%  
+    filter(sensor %in% sensors.without.injection) %>% 
+    group_by(sensor) %>%                  
+    filter(PC..hPa. > 1005 & PR..hPa. > 1005) %>%  
+    slice(1) %>%                       
+    ungroup() 
+  
+  file.final.injection.extra$stage <- 'injection'
+  
+  file.final.injection <- rbind(file.final.injection,file.final.injection.extra)
+  
+  sensors.without.injection <- unique(file.final$sensor)[which(unique(file.final$sensor) %in% unique(file.final.injection$sensor)==FALSE)]
+  print(sensors.without.injection)
+  
+  rm(sensors.without.injection,file.final.injection.extra)
+}
+```
+
+# Assess whether the moment of injection is correct for all sensors and if not: correct
+
+For these sensors without injection, the PL measurements were not considered when identifying the injection. After visual inspection all assigned injections were appropriately identified.
+
+```{r}
+sensors.with.unlikely.injection <- unique(file.final.injection$sensor[which(file.final.injection$Time..s.>100)])
+sensors.with.unlikely.injection
+
+if (length(sensors.with.unlikely.injection)>=1){
+
+  file.final.injection.extra <- file.final %>%  
+    filter(sensor %in% sensors.with.unlikely.injection) %>% 
+    group_by(sensor) %>%                  
+    filter(PC..hPa. > 1005 & PR..hPa. > 1005) %>%  
+    slice(1) %>%                       
+    ungroup() 
+  
+  file.final.injection.extra$stage <- 'injection'
+  
+  file.final.injection <- file.final.injection[-which(file.final.injection$sensor %in% unique(file.final.injection.extra$sensor)),]
+  
+  file.final.injection <- rbind(file.final.injection,file.final.injection.extra)
+  
+  sensors.with.unlikely.injection <- unique(file.final.injection$sensor[which(file.final.injection$Time..s.>100)])
+  print(sensors.with.unlikely.injection)
+
+  rm(file.final.injection.extra,sensors.with.unlikely.injection)
+}
+```
+
+#Create Shear stress dataframe
+threshold value
+Based on literature we know U needs to be between 5 and 15m/s? Therefore we made an Threshold value based on 5, 10 and 15 m/s. For the creation of the threshold value we made use of (url to Jeff's Github for excel file). 
+In this excel file we used the T on the 12/12/2018 and 13/12/2018, which is 4,5°C (see paper)
+
+The threshold (ε ≥ 500 s-1) for ΔP at 4,5 °C and:
+U = 5m/s: ΔP = 3,45 hPa
+U = 10m/s: ΔP = 4,86 hPa
+U = 15m/s: ΔP = 5,95 hPa
+
+```{r}
+#Length sensor
+L<- 0.01
+
+#velocity 
+U<- 5
+
+#temperature at the day we did the BDS test
+Temp.C. <- 4.5
+
+#calculate temperature depended variables
+rho <- (999.83952+16.945176*Temp.C.-0.0079870401*Temp.C.^2)/(1+0.01689785*Temp.C.)
+µ <- (exp(-3.7188+((578.919)/(-137.546+Temp.C.+273.15))))/1000
+
+#Calculate Reynolds number
+Re = (rho*U *L)/µ
+
+
+df_shear<-file.final %>% 
+  select(c(sensor, scenario, scenario_sensor, Time..s., PC..hPa.,PR..hPa.,PL..hPa.,PL..hPa., P..hPa.)) %>% 
+  group_by(sensor) %>%
+  mutate(
+    Prc..hPa. = abs(PC..hPa.- PR..hPa.), #difference in pressure between central and right sensor
+    Plc..hPa. = abs(PC..hPa.- PL..hPa.), #difference in pressure between central and left sensor
+    shearcr = (40*Prc..hPa.)/sqrt(Re), #Formula based on the equations from Archenbacks 
+    shearcl = (40*Plc..hPa.)/sqrt(Re),
+    straincr = shearcr/µ, #transformation to strain rate in orde to be able to compare to laboratory studies
+    straincl = shearcl/µ,
+    mean_strain = rowMeans(cbind(straincr, straincl),na.rm=TRUE )
+    ) %>% 
+    ungroup()  
+```
+
+
+
+# Check plots of Plc and Prc in function of time with the threshold values
+
+```{r}
+scenario<-unique(df_shear$scenario)
+l <- list()
+k = 0
+
+# Define the threshold value in hPa
+th5<-3.45
+th10<-4.86
+th15<-5.95
+
+
+
+for (s in scenario){
+  df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
+  sensors<-unique(df_shear.scenario$sensor)
+  for (i in sensors[1:5]){
+    k = k+1
+    df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
+    #create plot with 2 lines one for Plc and one for Prc
+     g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
+            geom_line(aes(y = P..hPa., color = "P")) +   # Total pressure
+            geom_line(aes(y = Plc..hPa., color = "Plc")) +   # First line for Plc
+            geom_line(aes(y = Prc..hPa., color = "Prc")) +   # Second line for Prc
+            geom_hline(yintercept = th5, linetype = "dashed", color = "black", aes(label = "U = 5 m/s")) +  # Threshold line 5 m/s
+            geom_hline(yintercept = th5, linetype = "dashed", color = "black", aes(label = "U = 10 m/s")) +  # Threshold line U = 10 m/s
+            geom_hline(yintercept = th5, linetype = "dashed", color = "black", aes(label = "U = 15 m/s")) +  # Threshold line U = 15 m/s
+            theme_minimal() +
+            ggtitle(paste0(s, "/", i)) +
+            scale_color_manual(name = "Legend", values = c("Plc" = "blue", "Prc" = "red", "th5" = "black", "th10" = "black","th15" = "black", "P" = "black"))  # Custom colors for each line
+    l[[k]]<-ggplotly(g)
+    rm(df_shear.sensor)
+  }
+  rm(df_shear.scenario)
+}
+l
+```
+
+#visualize and create df of strain rate and time above threshold
+
+```{r}
+scenario<-unique(df_shear$scenario)
+l <- list()
+k = 0
+
+# Define the threshold value for strain rate s-1
+th<-500
+
+# Dataframe to store results
+over_threshold_df <- data.frame(Scenario = character(),
+                                Sensor = character(),
+                                Start_Time = numeric(),
+                                End_Time = numeric(),
+                                Duration = numeric(),
+                                Avg_strain = numeric(),
+                                Max_strain = numeric(),
+                                stringsAsFactors = FALSE)
+
+for (s in scenario){
+  df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
+  sensors<-unique(df_shear.scenario$sensor)
+  for (i in sensors[1:5]){
+    k = k+1
+    df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
+    #create plot with 2 lines one for Plc and one for Prc
+     g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
+            geom_line(aes(y = straincr, color = "straincr")) +  
+            geom_line(aes(y = straincl, color = "straincl")) +  
+            geom_line(aes(y = mean_strain, color = "mean_strain")) +   
+            geom_hline(yintercept = th, linetype = "dashed", color = "black", aes(label = "U = 5 m/s")) +  # Threshold line 5 m/s
+            theme_minimal() +
+            ggtitle(paste0(s, "/", i)) +
+            scale_color_manual(name = "Legend", values = c("straincr" = "red", "straincr" = "green","mean_strain" = "blue","th" = "black"))  # Custom colors for each line
+    l[[k]]<-ggplotly(g)
+
+      # Identify where strain exceeds the threshold
+    above_threshold <- df_shear.sensor$mean_strain > th
+    
+    # Find the start and end of each "over-threshold" period
+    diff_mean_strain <- c(FALSE, diff(above_threshold) != 0)  # Detect changes in the logical vector
+    event_starts <- which(diff_mean_strain & above_threshold)
+    event_ends <- which(diff_mean_strain & !above_threshold) - 1
+    
+    # Handle if the period continues till the last row
+    if (length(event_starts) > length(event_ends)) {
+      event_ends <- c(event_ends, nrow(df_shear.sensor))
+    }
+    
+    # Loop through each "over-threshold" period
+    for (j in 1:length(event_starts)) {
+      start_idx <- event_starts[j]
+      end_idx <- event_ends[j]
+      
+      # Get the time range
+      start_time <- df_shear.sensor$Time..s.[start_idx]
+      end_time <- df_shear.sensor$Time..s.[end_idx]
+      duration <- end_time - start_time
+      
+      # Calculate average and maximum strain during the over-threshold period
+      avg_mean_strain <- mean(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
+      max_mean_strain <- max(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
+      
+      # Append the result to the dataframe
+      over_threshold_df <- rbind(over_threshold_df, data.frame(Scenario = s,
+                                                               Sensor = i,
+                                                               Start_Time = start_time,
+                                                               End_Time = end_time,
+                                                               Duration = duration,
+                                                               Avg_mean_strain = avg_mean_strain,
+                                                               Max_mean_strain = max_mean_strain,
+                                                               stringsAsFactors = FALSE))
+    }
+    
+    
+    
+    rm(df_shear.sensor)
+  }
+  rm(df_shear.scenario)
+}
+l
+
+```
+```{r}
+over_threshold_df_sum<-over_threshold_df %>%
+  group_by(Scenario, Sensor) %>% 
+  summarise(
+    Duration = sum(Duration),
+    Avg_mean_strain = mean(Avg_mean_strain),
+    Max_mean_strain = max(Max_mean_strain)
+  )
+  
+ggplot(over_threshold_df_sum, aes(x = Scenario, y = Duration)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of Duration for Each Scenario",
+       x = "Scenario",
+       y = "Time over threshold (s)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+

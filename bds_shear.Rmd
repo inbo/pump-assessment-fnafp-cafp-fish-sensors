@@ -255,87 +255,114 @@ l
 #visualize and create df of strain rate and time above threshold
 
 ```{r}
-scenario<-unique(df_shear$scenario)
-l <- list()
-k = 0
+# Define a function to find intersection points between the strain rate and threshold
+find_intersections <- function(time, strain, threshold) {
+  intersections <- c()
+  
+  for (i in 1:(length(strain) - 1)) {
+    if ((strain[i] < threshold && strain[i+1] >= threshold) || (strain[i] >= threshold && strain[i+1] < threshold)) {
+      # Linear interpolation to find the exact crossing time
+      slope <- (strain[i+1] - strain[i]) / (time[i+1] - time[i])
+      intersection_time <- time[i] + (threshold - strain[i]) / slope
+      intersections <- c(intersections, intersection_time)
+    }
+  }
+  
+  return(intersections)
+}
 
-# Define the threshold value for strain rate s-1
-th<-500
+# Iterate over each scenario and sensor to plot and analyze
+scenario <- unique(df_shear$scenario)
+l <- list()
+k <- 0
+
+# Threshold for strain rate
+th <- 500
 
 # Dataframe to store results
-over_threshold_df <- data.frame(Scenario = character(),
-                                Sensor = character(),
-                                Start_Time = numeric(),
-                                End_Time = numeric(),
-                                Duration = numeric(),
-                                Avg_strain = numeric(),
-                                Max_strain = numeric(),
-                                stringsAsFactors = FALSE)
+over_threshold_df <- data.frame(
+  Scenario = character(),
+  Sensor = character(),
+  Start_Time = numeric(),
+  End_Time = numeric(),
+  Duration = numeric(),
+  Avg_strain = numeric(),
+  Max_strain = numeric(),
+  stringsAsFactors = FALSE
+)
 
-for (s in scenario){
-  df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
-  sensors<-unique(df_shear.scenario$sensor)
-  for (i in sensors[1:5]){
-    k = k+1
-    df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
-    #create plot with 2 lines one for Plc and one for Prc
-     g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
-            geom_line(aes(y = straincr, color = "straincr")) +  
-            geom_line(aes(y = straincl, color = "straincl")) +  
-            geom_line(aes(y = mean_strain, color = "mean_strain")) +   
-            geom_hline(yintercept = th, linetype = "dashed", color = "black", aes(label = "U = 5 m/s")) +  # Threshold line 5 m/s
-            theme_minimal() +
-            ggtitle(paste0(s, "/", i)) +
-            scale_color_manual(name = "Legend", values = c("straincr" = "red", "straincr" = "green","mean_strain" = "blue","th" = "black"))  # Custom colors for each line
-    l[[k]]<-ggplotly(g)
-
-      # Identify where strain exceeds the threshold
-    above_threshold <- df_shear.sensor$mean_strain > th
+for (s in scenario) {
+  df_shear.scenario <- df_shear[which(df_shear$scenario == s), ]
+  sensors <- unique(df_shear.scenario$sensor)
+  
+  for (i in sensors[1:5]) {
+    k <- k + 1
+    df_shear.sensor <- df_shear.scenario[which(df_shear.scenario$sensor == i), ]
     
-    # Find the start and end of each "over-threshold" period
-    diff_mean_strain <- c(FALSE, diff(above_threshold) != 0)  # Detect changes in the logical vector
-    event_starts <- which(diff_mean_strain & above_threshold)
-    event_ends <- which(diff_mean_strain & !above_threshold) - 1
+    # Sort the data by Time..s. to ensure chronological order
+    df_shear.sensor <- df_shear.sensor %>% arrange(Time..s.)
     
-    # Handle if the period continues till the last row
-    if (length(event_starts) > length(event_ends)) {
-      event_ends <- c(event_ends, nrow(df_shear.sensor))
+    # Create the plot with the lines for strain rates
+    g <- ggplot(df_shear.sensor, aes(x = Time..s.)) +
+      geom_line(aes(y = straincr, color = "straincr")) +  
+      geom_line(aes(y = straincl, color = "straincl")) +  
+      geom_line(aes(y = mean_strain, color = "mean_strain")) +   
+      geom_hline(yintercept = th, linetype = "dashed", color = "black", aes(label = "Threshold 500 s^-1")) +  # Threshold line
+      theme_minimal() +
+      ggtitle(paste0(s, "/", i)) +
+      scale_color_manual(
+        name = "Legend", 
+        values = c("straincr" = "red", "straincl" = "green", "mean_strain" = "blue", "threshold" = "black")
+      )  # Custom colors for each line
+    
+    l[[k]] <- ggplotly(g)
+    
+    # Find intersections where mean_strain crosses the threshold
+    intersections <- find_intersections(df_shear.sensor$Time..s., df_shear.sensor$mean_strain, th)
+    
+    # Loop through intersections two at a time to calculate periods above threshold
+    for (j in seq(1, length(intersections), by = 2)) {
+      if (j + 1 <= length(intersections)) {
+        start_time <- intersections[j]
+        end_time <- intersections[j + 1]
+        duration <- end_time - start_time
+        
+        # Find the index range corresponding to this time period
+        idx_start <- which.min(abs(df_shear.sensor$Time..s. - start_time))
+        idx_end <- which.min(abs(df_shear.sensor$Time..s. - end_time))
+        
+        # Calculate average and maximum strain during this period
+        avg_mean_strain <- mean(df_shear.sensor$mean_strain[idx_start:idx_end], na.rm = TRUE)
+        max_mean_strain <- max(df_shear.sensor$mean_strain[idx_start:idx_end], na.rm = TRUE)
+        
+        # Append the result to the dataframe
+        over_threshold_df <- rbind(
+          over_threshold_df, 
+          data.frame(
+            Scenario = s,
+            Sensor = i,
+            Start_Time = start_time,
+            End_Time = end_time,
+            Duration = duration,
+            Avg_mean_strain = avg_mean_strain,
+            Max_mean_strain = max_mean_strain,
+            stringsAsFactors = FALSE
+          )
+        )
+      }
     }
-    
-    # Loop through each "over-threshold" period
-    for (j in 1:length(event_starts)) {
-      start_idx <- event_starts[j]
-      end_idx <- event_ends[j]
-      
-      # Get the time range
-      start_time <- df_shear.sensor$Time..s.[start_idx]
-      end_time <- df_shear.sensor$Time..s.[end_idx]
-      duration <- end_time - start_time
-      
-      # Calculate average and maximum strain during the over-threshold period
-      avg_mean_strain <- mean(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
-      max_mean_strain <- max(df_shear.sensor$mean_strain[start_idx:end_idx], na.rm = TRUE)
-      
-      # Append the result to the dataframe
-      over_threshold_df <- rbind(over_threshold_df, data.frame(Scenario = s,
-                                                               Sensor = i,
-                                                               Start_Time = start_time,
-                                                               End_Time = end_time,
-                                                               Duration = duration,
-                                                               Avg_mean_strain = avg_mean_strain,
-                                                               Max_mean_strain = max_mean_strain,
-                                                               stringsAsFactors = FALSE))
-    }
-    
-    
     
     rm(df_shear.sensor)
   }
+  
   rm(df_shear.scenario)
 }
+
+# Output the result (Optional visualization, summary, etc.)
 l
 
 ```
+
 ```{r}
 over_threshold_df_sum<-over_threshold_df %>%
   group_by(Scenario, Sensor) %>% 
@@ -352,6 +379,24 @@ ggplot(over_threshold_df_sum, aes(x = Scenario, y = Duration)) +
        x = "Scenario",
        y = "Time over threshold (s)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(over_threshold_df_sum, aes(x = Scenario, y = Avg_mean_strain)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of avarage mean strain above threshold for Each Scenario",
+       x = "Scenario",
+       y = "avarage mean_strain above threshold (s-1)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(over_threshold_df_sum, aes(x = Scenario, y = Max_mean_strain)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of Maximal mean strain for Each Scenario",
+       x = "Scenario",
+       y = "Maximal mean strain (s-1)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 
 ```
 

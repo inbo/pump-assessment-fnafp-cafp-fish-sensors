@@ -88,9 +88,9 @@ pdf("./figures/manuscript/dt_mort.pdf")
 par(mfrow = c(1,2))
 
 # CRT for state OK 
-form.state.df.tree <- as.formula(State ~ rpm + Control_or_pump + Species + Length)
+form.state.df.tree <- as.formula(State ~ rpm + Control_or_pump + Species)
 model.state.df.tree <- rpart(form.state.df.tree,df_OK_f,control=control)
-a<-fancyRpartPlot(model.state.df.tree,main="all species",box.palette=color.selection,palettes = "PuRd")
+a<-fancyRpartPlot(model.state.df.tree,main="All species",box.palette=color.selection,palettes = "PuRd")
 a
 model.state.df.tree$variable.importance/max(model.state.df.tree$variable.importance)
 rmse(predict(model.state.df.tree,df_OK_f),df_OK_f)
@@ -110,7 +110,8 @@ for(i in specieslist_OK[1]){
   k=k+1
   form.state.df.tree <- as.formula(State ~ rpm + Length + Control_or_pump)
   model.state.df.tree[[k]] <- rpart(form.state.df.tree,df_OK_f[which(df_OK_f$Species==i),],control=control)
-  b[[k]]<-fancyRpartPlot(model.state.df.tree[[k]],main=paste(i),box.palette=color.selection,palettes = "PuRd")
+  b[[k]]<-fancyRpartPlot(model.state.df.tree[[k]],main=paste(toupper(substr(i, 1, 1)), substr(i, 2, nchar(i)), sep="")
+,box.palette=color.selection,palettes = "PuRd")
   b[[k]]
   print(model.state.df.tree[[k]]$variable.importance/max(model.state.df.tree[[k]]$variable.importance))
   print(rmse(predict(model.state.df.tree[[k]],df_OK_f[which(df_OK_f$Species==i),]),df_OK_f[which(df_OK_f$Species==i),]))

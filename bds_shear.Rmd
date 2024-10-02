@@ -168,6 +168,74 @@ if (length(sensors.with.unlikely.injection)>=1){
 }
 ```
 
+# Determine the moment of nadir pressure 
+
+The nadir was determined differently for control and not-control sensors. For the non-control samples the nadir should be located within 3 and 75 seconds after the moment of injection. As the nadir is characterized by a sudden pressure change the relative change in average pressure should also be considered. To this end, a Savitzky-Golay smoothing filter was applied to the average pressure data over time with a filter polynomial order of 2 and frame length of 11. The nadir should be close in time (<0.1 seconds) to an absolute change in smoothed average pressure of minimally 20 hPa. The lowest value to meet these requirements was identified as the nadir. For the control samples, the nadir should be located within 5 and 75 seconds after the moment of injection. There was no requirement to smooth the data for the control samples and the lowest pressure was retained as the nadir. After visual inspection, no correction needed to be made for the nadir as all appeared to be identified correctly using these rules.
+
+```{r}
+sensors<-unique(file.final$sensor)
+file.final$time.of.injection<-NA
+file.final$relative.to.injection<-NA
+
+for (i in sensors){
+  time.of.injection<-file.final.injection$Time..s.[which(file.final.injection$sensor==i)]
+  file.final$time.of.injection[which(file.final$sensor==i)]<-time.of.injection
+  file.final$relative.to.injection[which(file.final$sensor==i)]<-file.final$Time..s.[which(file.final$sensor==i)]-time.of.injection
+}
+
+file.final.nadir.pressure <- file.final %>%
+  group_by(sensor) %>%
+  mutate(NadirNearby=case_when(str_detect(scenario,"Ctrl")==FALSE & relative.to.injection > 3
+                   & relative.to.injection < 75
+                   & abs(diff_sec_sgolayfilt) > 20 ~ TRUE,
+                   str_detect(scenario,"Ctrl")==TRUE & relative.to.injection > 5
+                   & relative.to.injection < 75 ~ TRUE, .default=FALSE)) %>%
+  mutate(diff_nadir = map_dbl(Time..s., ~ min(abs(.x - Time..s.[NadirNearby])))) %>%
+  filter(diff_nadir<10*0.01) %>%
+  filter(P..hPa.==min(P..hPa.)) %>%
+  slice(1) %>%
+  select(-c(diff_nadir, NadirNearby)) %>%
+  ungroup()
+
+file.final.nadir.pressure<-correct_ROI_manually(file.final.nadir.pressure,"B470904140250",20.165,"nadir_pressure")
+
+file.final.nadir.pressure$relative.to.injection<-NULL
+file.final.nadir.pressure$time.of.injection<-NULL
+file.final$relative.to.injection<-NULL
+
+file.final.nadir.pressure$stage <- 'nadir_pressure'
+
+rm(time.of.injection)
+```
+
+
+#remove time data 10s after NADIR moment en 1 s before injection
+To excluded data from in the net and taking sensor out of the water
+
+```{r}
+# Initialize an empty dataframe to store the results
+file.final2 <- data.frame()
+
+# Loop through each sensor and append the filtered data
+for (i in sensors) {
+  # Calculate the trim value for the current sensor
+  trim <- file.final.nadir.pressure$Time..s.[file.final.nadir.pressure$sensor == i] + 10
+  # Filter the data for the current sensor and append it to file.final2
+  file.final2 <- rbind(
+    file.final2, 
+    file.final %>%
+      filter(sensor == i, Time..s. < trim))
+}
+
+# Optionally replace file.final with the appended data
+file.final1 <- file.final
+
+file.final <- file.final2
+
+# Clean up
+rm(file.final2)
+```
+
 #Create Shear stress dataframe
 threshold value
 Based on literature we know U needs to be between 5 and 15m/s? Therefore we made an Threshold value based on 5, 10 and 15 m/s. For the creation of the threshold value we made use of (url to Jeff's Github for excel file). 
@@ -230,7 +298,7 @@ th15<-5.95
 for (s in scenario){
   df_shear.scenario<-df_shear[which(df_shear$scenario==s),]
   sensors<-unique(df_shear.scenario$sensor)
-  for (i in sensors[1:5]){
+  for (i in sensors){
     k = k+1
     df_shear.sensor<-df_shear.scenario[which(df_shear.scenario$sensor==i),]
     #create plot with 2 lines one for Plc and one for Prc
@@ -251,6 +319,18 @@ for (s in scenario){
 }
 l
 ```
+
+Cut dataframe after pump passage and remove broken sensors
+```{r}
+df_shear<-df_shear %>% 
+  filter(!sensor %in% c("B041211162237", "B291213114542", "B261213093722", "B121211152453", "B261212110906","B331213114742", "B261212134451", "B261212160554", "B301212134839", "B301212160904", "B421212135906", "B470904140250", "B251212110824", "B421212111410"))
+
+
+# Overview of sample sizes after removing broken/weird sensors data
+
+df_shear %>% group_by(scenario) %>% distinct(scenario, sensor) %>% count() %>% kable(caption="Number of sensors per scenario")
+```
+
 
 #visualize and create df of strain rate and time above threshold
 
@@ -295,7 +375,7 @@ for (s in scenario) {
   df_shear.scenario <- df_shear[which(df_shear$scenario == s), ]
   sensors <- unique(df_shear.scenario$sensor)
   
-  for (i in sensors[1:5]) {
+  for (i in sensors) {
     k <- k + 1
     df_shear.sensor <- df_shear.scenario[which(df_shear.scenario$sensor == i), ]
     
@@ -399,4 +479,103 @@ ggplot(over_threshold_df_sum, aes(x = Scenario, y = Max_mean_strain)) +
 
 
 ```
+#Statiscal comparsion between the boxplots
+```{r}
+# ANOVA for Duration
+anova_duration <- aov(Duration ~ Scenario, data = over_threshold_df)
+anova_avg_strain <- aov(Avg_mean_strain ~ Scenario, data = over_threshold_df)
+anova_max_strain <- aov(Max_mean_strain ~ Scenario, data = over_threshold_df)
+
+
+# Extract residuals from the ANOVA model
+shapiro.test(residuals(anova_duration))
+shapiro.test(residuals(anova_avg_strain))
+shapiro.test(residuals(anova_max_strain))
+
+
+# Levene's test for equal variances
+leveneTest(Duration ~ Scenario, data = over_threshold_df)
+leveneTest(Avg_mean_strain ~ Scenario, data = over_threshold_df)
+leveneTest(Max_mean_strain ~ Scenario, data = over_threshold_df)
+
+
+#not normally distributed/ homogenity not ok -> non parametic test
+# Kruskal-Wallis test for Duration
+kruskal_duration <- kruskal.test(Duration ~ Scenario, data = over_threshold_df)
+kruskal_duration
+
+# Kruskal-Wallis test for Avg_mean_strain
+kruskal_avg_strain <- kruskal.test(Avg_mean_strain ~ Scenario, data = over_threshold_df)
+kruskal_avg_strain
+
+# Kruskal-Wallis test for Max_mean_strain
+kruskal_max_strain <- kruskal.test(Max_mean_strain ~ Scenario, data = over_threshold_df)
+kruskal_max_strain
+
+
+library(dunn.test)
+options(width = 5000)
+
+
+# Dunn's test for Duration
+dunn_test_duration <- dunn.test(over_threshold_df$Duration, over_threshold_df$Scenario, method = "bonferroni")
+print(dunn_test_duration)
+
+
+# Dunn's test for Avg_mean_strain
+dunn_test_avg_strain <- dunn.test(over_threshold_df$Avg_mean_strain, over_threshold_df$Scenario, method = "bonferroni")
+print(dunn_test_avg_strain)
+
+# Dunn's test for Max_mean_strain
+dunn_test_max_strain <- dunn.test(over_threshold_df$Max_mean_strain, over_threshold_df$Scenario, method = "bonferroni")
+print(dunn_test_max_strain)
+
+
+```
+
+
+#heat map for shear stress 
+Need to adjust this make the time relative to the NADIR pressure
+
+```{r}
+library(patchwork)
+
+# Generate individual plots for each scenario
+plots <- list()  # Create an empty list to store plots
+
+scenarios <- unique(df_shear$scenario)  # Get unique scenarios
+
+# Loop through each scenario and create a heatmap plot
+for (s in scenarios) {
+  df_shear.scenario <- df_shear %>% filter(scenario == s)
+  
+  p <- ggplot(df_shear.scenario, aes(x = Time..s., y = sensor, fill = mean_strain)) +
+    geom_tile() +
+    scale_fill_gradientn(
+      colors = c("blue", "yellow", "red"),  # Blue for low, yellow for medium, red for high
+      values = scales::rescale(c(0, 500, max(df_shear$mean_strain, na.rm = TRUE))),
+      limits = c(0, max(df_shear$mean_strain, na.rm = TRUE)),  # Ensure the scale matches your data
+      oob = scales::squish  # Handle out-of-bounds values
+    ) +
+    theme_minimal() +
+    labs(
+      title = paste("Scenario:", s),  # Title specific to each scenario
+      x = "Time (s)",
+      y = "Sensor",
+      fill = "Shear Stress (s⁻¹)"
+    ) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  plots[[s]] <- p  # Add the plot to the list
+}
+
+# Combine the individual plots using patchwork
+combined_plot <- ((plots[[1]] | plots[[2]]) / (plots[[3]] | plots[[4]])/plots[[5]]) + plot_layout(guides = "collect", axes = "collect")
+
+
+# Display the combined plot
+combined_plot
+
+```
+
 

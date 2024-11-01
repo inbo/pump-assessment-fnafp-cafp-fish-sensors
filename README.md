@@ -20,6 +20,17 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
   * manuscript: figures used in the manuscript
 * source
   * functions: all self-made functions are stored here
+    * correct_ROI_manually.R: In case a Region of Interest (ROI) for a certain BDS is incorrect, change it manually.                      
+    * export_emmeans.R:                            
+    * log_model_state.R:                          
+    * plot_histogram_length_weight_distribution.R: 
+    * read_excel_allsheets.R:                      
+    * rmse.R:                                      
+    * round_df.R:                                  
+    * run_chi_squared.R:                           
+    * source_rmd.R:                                
+    * stats_data_level1.R: Aggregation function to yield number of recaptured fish per scenario and fin cut                        
+    * stats_data_level2a.R: Aggregation function to yield number of recaptured fish per scenario   
   * not_functions: all scripts that are not functions are stored here
     * add_missing_folders.R: create necessary folders if they do not exist already
     * clean_data_forced.R: clean the FNAFP data
@@ -48,5 +59,6 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
   * Data BDS: https://drive.google.com/drive/folders/0ABLaelAKJifeUk9PVA
 * b2_bds_analysis.Rmd: Analysis BDS timeseries
 * b3_bds_visualisation.Rmd: Visualisation BDS timeseries
+* b4_bds_shear_stress.Rmd: Calculation of shear stress
  
 

@@ -92,7 +92,7 @@ df_OK_f_long$Type=df_OK_f_long$Control
 
 ## Methodology
 
-In addition to the logistic models, to assess the survival probability, and multinomial models, to assess the injury probability, decision trees were constructed. These allow an intuitive and clear interpretation of the data. 
+In addition to the logistic models, to assess the survival probability, and multinomial models, to assess the injury probability, decision trees were constructed. To assess the survival rate for the different scenarios of the FNAFP, decision trees were developed for the entire dataset and for each species separately. These provide an intuitive and clear overview of the data and underlying patterns. The state of each fish (alive=1 versus dead=0) was used as response. The explanatory variables were species (discrete), rpm (discrete) and fish length (continuous).
 
 ## Results
 
@@ -112,7 +112,7 @@ model.injury.df.tree$variable.importance/max(model.injury.df.tree$variable.impor
 dev.off()
 ```
 
-When considering the type of the injuries, eel samples, control samples and samples with a length of less than 196 mm (all roach) were most likely to have no injury. Fish larger than 196 mm (all remaining bream) were most likely to have a 3.2 injury (Incisions, cuts, decapitation). If however, the length of the fish was between 196 and 340 the most likely injury would be 2.3 (Light scratches,contusions,scale loss \<20% of body).
+No decision tree could be constructed for the CAFP
 
 ```{r}
 # Random forest state OK

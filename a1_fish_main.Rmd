@@ -1,5 +1,5 @@
 ---
-title: "fish_main"
+title: "a1_fish_main"
 author: "Stijn Bruneel and Sarah Broos"
 date: '19-02-2024'
 output:
@@ -91,11 +91,12 @@ df_OK_n_ad<-clean_data_OK_natural(df_OK_n_ad,Control="Both",outlier.removal = TR
 ```
 
 ```{r}
-# Combine OK data of different species 
+# Combine data of different species 
 df_OK_f<-rbind(df_OK_f_bream,df_OK_f_roach,df_OK_f_eel)
 ```
 
 ```{r}
+# Save cleaned data
 write.csv(df_OK_f_bream,"./data/fish/internal/additional/df_OK_f_bream.csv")
 write.csv(df_OK_f_roach,"./data/fish/internal/additional/df_OK_f_roach.csv")
 write.csv(df_OK_f_eel,"./data/fish/internal/additional/df_OK_f_eel.csv")
@@ -107,40 +108,37 @@ rm(df_OK_f_bream,df_OK_f_eel,df_OK_f_roach)
 ## Data overview: Exploratory analysis
 
 ```{r}
-# Present the scenarios and fin cuts for OK
+# Present the scenarios and fin cuts
 df_OK_f %>% 
   distinct(Species, Pump_type, rpm, Fin_cut, Control) %>% 
   arrange(Pump_type, Species, rpm, Control) %>% 
-  kable(caption="Different scenarios and samples for OK")
+  kable(caption="Different scenarios and samples")
 ```
 
 ```{r}
-# Number of recaptured individuals for OK
+# Number of recaptured individuals
 df_OK_f %>% 
   group_by(Species) %>% 
   distinct(Species, Individuals_ID) %>% 
   count() %>% 
-  kable(caption="Number of recaptured individuals per species for OK")
+  kable(caption="Number of recaptured individuals per species")
 ```
 
 ```{r}
-# Number of recaptured individuals per scenario and fin cut (n) and total number of recaptured individuals per species (Total) for OK
-df_OK_f_temp <- df_OK_f %>% 
+# Number of recaptured individuals per scenario and fin cut (n) and total number of recaptured individuals per species (Total)
+df_OK_f %>% 
   group_by(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish) %>%
   distinct(Species, Pump_type, rpm, Control, Fin_cut, number_of_released_fish, Individuals_ID) %>% 
   summarise(n = n()) %>% 
   ungroup() %>% 
   group_by(Species) %>% 
   mutate(Total = sum(n)) %>% 
-  arrange(Species, Pump_type, rpm, Control) 
-
-df_OK_f_temp %>% 
+  arrange(Species, Pump_type, rpm, Control) %>% 
   kable(caption = "Number of released fish per scenario and sample, Number of observed fish per scenario and sample (n) and total number of fish per species for OK.")
-rm(df_OK_f_temp,df_OK_f_temp_too_few_samples)
 ```
 
 ```{r}
-# Number of recaptured individuals per scenario (n) and total number of recaptured individuals per species (Total) for OK
+# Number of recaptured individuals per scenario (n) and total number of recaptured individuals per species (Total)
 df_OK_f %>% mutate(number_of_released_fish_per_scenario = replace(number_of_released_fish_per_scenario, Frequency_theoretical != Frequency, NA)) %>%
   group_by(Species, Pump_type, rpm, Control) %>%
   summarise(number_of_released_fish_per_scenario=mean(number_of_released_fish_per_scenario,na.rm=TRUE),n = n(),length=round(mean(Length)),weigth=round(mean(Weight))) %>%
@@ -156,7 +154,7 @@ df_OK_f %>% mutate(number_of_released_fish_per_scenario = replace(number_of_rele
 ### Mortality
 
 ```{r}
-# Run aggregation function to yield number of recaptured fish per scenario and fin cut for OK
+# Run aggregation function to yield number of recaptured fish per scenario and fin cut
 df_OK_f_stat_level1 <- stats_data_level1(df_OK_f)
 df_OK_f_stat_level1$Pump_type_Frequency <- paste(df_OK_f_stat_level1$Pump_type,df_OK_f_stat_level1$Frequency)
 write.csv(df_OK_f_stat_level1,"./data/fish/internal/additional/df_OK_f_stat_level1.csv")
@@ -175,14 +173,14 @@ ggplot(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="pump" & df_O
   geom_point(data=df_OK_f_stat_level1[which(df_OK_f_stat_level1$Control=="control" & df_OK_f_stat_level1$State=="Dead"),], aes(rpm,percentage_state_test), alpha=1,position = position_dodge(0.5),shape=8)
 ```
 
-```{r fig.cap="Mortality in function of rpm per species for samples of OK. "}
+```{r fig.cap="Mortality in function of rpm per species for samples. "}
 # Run aggregation function to yield number of recaptured fish per scenario for OK
 df_OK_f_stat_level2a <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$number_recaptured>=10),],c("Species", "Pump_type", "rpm", "rpm", "Control", "State")) 
 df_OK_f_stat_level2b <- stats_data_level2a(df_OK_f_stat_level1[which(df_OK_f_stat_level1$Frequency_theoretical==df_OK_f_stat_level1$Frequency),],c("Species", "Pump_type", "rpm", "rpm", "Control", "Fin_cut")) 
 write.csv(df_OK_f_stat_level2a,"./data/fish/internal/NP/df_OK_f_stat_level2a.csv")
 write.csv(df_OK_f_stat_level2b,"./data/fish/internal/additional/df_OK_f_stat_level2b.csv")
 
-# Plots depicting average, minimum and maximum for the percentage Alive versus Dead of recaptured fish per scenario for OK
+# Plots depicting average, minimum and maximum for the percentage Alive versus Dead of recaptured fish per scenario
 ggplot(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="pump" & df_OK_f_stat_level2a$State=="Dead"),], aes(rpm, percentage_state_test),size = 0.5, color = "black") + 
   geom_pointrange(aes(ymin = min_state, ymax = max_state), linetype = 1, position = position_dodge(0.5)) + 
   facet_grid(cols = vars(Species)) + 
@@ -197,7 +195,7 @@ ggplot(data=df_OK_f_stat_level2a[which(df_OK_f_stat_level2a$Control=="pump" & df
 
 ### Recapture percentage
 
-```{r fig.cap="Recapture percentage in function of rpm (Hz) per species for samples of OK."}
+```{r fig.cap="Recapture percentage in function of rpm (Hz) per species for samples."}
 # Recapture percentage OK (boxplots: per fin cut)
 ggplot(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="pump"),], aes(rpm, 100*(number_recaptured/number_of_released_fish)), size = 0.5, color = "black") + 
   geom_boxplot(linetype = 1, position = position_dodge(0.5)) + facet_grid(cols = vars(Species)) + ylab("Percentage \n of recovered fish (%)") + xlab("Operational pump \nmode (rpm)") + 
@@ -211,7 +209,7 @@ ggplot(data=df_OK_f_stat_level2b[which(df_OK_f_stat_level2b$Control=="pump"),], 
 ### Injuries
 
 ```{r}
-# Turn wide data into long data based on the injuries for OK
+# Turn wide data into long data based on the injuries
 df_OK_f %>% gather(.,key = Injury, Value, Class_1:Class_4, na.rm = FALSE) -> df_OK_f_long
 df_OK_f %>% gather(.,key = Injury, Value, Injury_type_no:Injury_type_dead, na.rm = FALSE) -> df_OK_f_long_type
 
@@ -232,18 +230,18 @@ write.csv(df_OK_f_stat_level2a_long,"./data/fish/internal/additional/df_OK_f_sta
 ```
 
 ```{r}
-# How much fish (n) have more than one observed injury (Number_injuries) for OK
+# How much fish (n) have more than one observed injury (Number_injuries)
 df_OK_f %>% 
   filter(Frequency != "NA" & Number_Injuries != "NA") %>% 
   group_by(Species, Pump_type, rpm, Control, Number_Injuries) %>% 
   tally() %>% ungroup() %>% 
-  kable(caption = "number of fish with different numbers of injuries per scenario for OK.")
+  kable(caption = "number of fish with different numbers of injuries per scenario.")
 ```
 
 #### Injury plots OK
 
-```{r fig.cap="Injury plots OK."}
-# Injury plots for OK
+```{r fig.cap="Injury plots."}
+# Injury plots
 ggplot(data=df_OK_f_stat_level1_long[which(df_OK_f_stat_level1_long$Control=="pump"),], aes(Injury, Value), size = 0.5, color = "black") + 
   geom_boxplot(aes(color = rpm), linetype = 1, position = position_dodge(0.5)) + 
   facet_grid(rows = vars(Species)) + 
@@ -285,7 +283,7 @@ ggplot(data=df_OK_f_stat_level2a_long[which(df_OK_f_stat_level2a_long$Control=="
   theme(axis.text.x = element_text(angle = 90)) + 
   scale_x_discrete(label=function(x) abbreviate(x, minlength=1))
 
-# Length versus weight plots for OK
+# Length versus weight plots
 specieslist_OK = unique(df_OK_f$Species)
 injurylist_OK = unique(df_OK_f_stat_level1_long$Injury) 
 injurylist_type_OK = unique(df_OK_f_long_type$Injury)
@@ -357,18 +355,18 @@ for(i in specieslist_OK){
 
 ### Length distributions
 
-#### Histograms length distributions OK
+#### Histograms length distributions
 
 ```{r}
-#Length distribution for OK
+#Length distribution
 plot.histogram.length.weight.distribution(df_OK_f,"Length",type="hist") %>% kable(caption="summary statistics length OK")
 plot.histogram.length.weight.distribution(df_OK_f,"Weight",type="hist") %>% kable(caption="summary statistics weight OK")
 ```
 
-#### Density plots length distributions OK
+#### Density plots length distributions
 
 ```{r}
-#Length distribution for OK
+#Length distribution
 plot.histogram.length.weight.distribution(df_OK_f,"Length",type="dens",summarystats=FALSE)
 plot.histogram.length.weight.distribution(df_OK_f,"Weight",type="dens",summarystats=FALSE)
 ```
@@ -380,7 +378,7 @@ df_OK_f$nState[which(df_OK_f$State=="Dead")]=0
 ```
 
 ```{r}
-# Chi-squared test data for state OK
+# Chi-squared test data for state
 df_OK_f_stat_level2a_wide <- as.data.frame(df_OK_f_stat_level2a %>% 
   dplyr::select(c("Species","Pump_type","rpm","Control","number_state_binom","State")) %>% #Using percentage makes more sense than n_state_binom because different fin_cuts have different sample sizes (this difference is accounted for in the percentage) 
   spread(State,number_state_binom)) 
@@ -399,12 +397,9 @@ write.csv(df_OK_f_stat_level2a_wide_freq_pump,"./data/fish/internal/NP/df_OK_f_s
 ```
 
 ```{r}
-# Chi-squared test data for injury OK
+# Chi-squared test data for injury
 df_OK_f_stat_level3 <- stats_data_level2a(df_OK_f_stat_level1,c("Species", "Pump_type", "rpm","Control"))
 df_OK_f_stat_level3 <- as.data.frame(df_OK_f_stat_level3 %>% 
-  #mutate_at(vars(contains('Class')), ~./number_state_binom) %>% 
-  #mutate_at(vars(contains('Class')), .funs = list(perc = ~./number_state_binom)) %>%
-  #mutate_at(vars(contains("Class")), ~sum(.)) %>%
   dplyr::select(-number_recaptured, -percentage_state_test, -min_state, -max_state, -Weight, -Length, -Number_Injuries, -number_of_released_fish,-number_of_released_fish_per_scenario,-number_state_binom, -Injury_type_no, -Injury_type_slight, -Injury_type_severe, -Injury_type_dead))
 df_OK_f_stat_level3$Class_3.3<-NULL
 df_OK_f_stat_level3$Class_3.7<-NULL
@@ -412,7 +407,7 @@ write.csv(df_OK_f_stat_level3,"./data/fish/internal/NP/df_OK_f_stat_level3.csv")
 ```
 
 ```{r}
-# Chi-squared test data for injury OK
+# Chi-squared test data for injury
 df_OK_f_stat_level3b <- stats_data_level2a(df_OK_f_stat_level1,c("Species", "Pump_type", "rpm","Control"))
 df_OK_f_stat_level3b <- as.data.frame(df_OK_f_stat_level3b %>% 
   dplyr::select(Species, Pump_type, rpm, Control, Injury_type_no, Injury_type_slight, Injury_type_severe, Injury_type_dead))

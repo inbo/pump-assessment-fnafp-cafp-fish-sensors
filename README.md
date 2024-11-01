@@ -59,5 +59,6 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
   * Data BDS: https://drive.google.com/drive/folders/0ABLaelAKJifeUk9PVA
 * b2_bds_analysis.Rmd: Analysis BDS timeseries
 * b3_bds_visualisation.Rmd: Visualisation BDS timeseries
+* b4_bds_shear_stress.Rmd: Calculation of shear stress
  
 

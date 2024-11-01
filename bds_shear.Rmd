@@ -452,32 +452,46 @@ over_threshold_df_sum<-over_threshold_df %>%
     Max_mean_strain = max(Max_mean_strain)
   )
   
-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Duration)) +
+cmpr<-list(c('CAFP','FNAFP - 468 rpm Ctrl'),
+ c('CAFP','FNAFP - 468 rpm'),        
+ c('CAFP','FNAFP - 550 rpm Ctrl'),
+ c('CAFP','FNAFP - 550 rpm'),        
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 468 rpm'),        
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 550 rpm Ctrl'),
+ c('FNAFP - 468 rpm Ctrl','FNAFP - 550 rpm'),
+ c('FNAFP - 468 rpm','FNAFP - 550 rpm'),
+ c('FNAFP - 468 rpm','FNAFP - 550 rpm Ctrl'),
+ c('FNAFP - 550 rpm Ctrl','FNAFP - 550 rpm')
+ )
+symnum.args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+g<-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Duration)) +
   geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Boxplot of Duration for Each Scenario",
-       x = "Scenario",
-       y = "Time over threshold (s)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(x = "Scenario",
+       y = "Time over threshold (s)") + theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle =45, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + stat_compare_means(comparisons = cmpr, method = "wilcox.test", symnum.args = symnum.args, p.adjust.method = "bonferroni", label='p.adj') + theme(axis.text.x=element_blank()) + theme(axis.title.x=element_blank())
 
-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Avg_mean_strain)) +
+pdf("./figures/manuscript/BDS_shearstress.pdf",height = 5)
+g
+dev.off()
+
+h<-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Avg_mean_strain)) +
   geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Boxplot of avarage mean strain above threshold for Each Scenario",
-       x = "Scenario",
-       y = "avarage mean_strain above threshold (s-1)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(x = "Scenario",
+       y = "Average mean strain rate (1/s)") +
+  theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle =45, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + stat_compare_means(comparisons = cmpr, method = "wilcox.test", symnum.args = symnum.args, p.adjust.method = "bonferroni", label='p.adj') + theme(axis.text.x=element_blank()) + theme(axis.title.x=element_blank())
 
-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Max_mean_strain)) +
+i<-ggplot(over_threshold_df_sum, aes(x = Scenario, y = Max_mean_strain)) +
   geom_boxplot() +
-  theme_minimal() +
-  labs(title = "Boxplot of Maximal mean strain for Each Scenario",
-       x = "Scenario",
-       y = "Maximal mean strain (s-1)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(x = "Scenario",
+       y = "Maximal mean strain rate (1/s)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme_bw() + theme(text = element_text(size = 12, family = "serif"), axis.text.x = element_text(angle =45, hjust = 0.5, vjust = 0.5, family = "serif"), strip.background = element_rect(colour = "black", fill = "white"), legend.position = "bottom") + stat_compare_means(comparisons = cmpr, method = "wilcox.test", symnum.args = symnum.args, p.adjust.method = "bonferroni", label='p.adj')
 
-
-
+pdf("./figures/manuscript/BDS_shearstress_mean_max.pdf",height = 12)
+library(grid)
+grid.newpage()
+grid.draw(rbind(ggplotGrob(h), ggplotGrob(i), size = "last"))
+dev.off()
 ```
 #Statiscal comparsion between the boxplots
 ```{r}
@@ -518,7 +532,7 @@ options(width = 5000)
 
 
 # Dunn's test for Duration
-dunn_test_duration <- dunn.test(over_threshold_df$Duration, over_threshold_df$Scenario, method = "bonferroni")
+dunn_test_duration <- DunnTest(over_threshold_df$Duration, over_threshold_df$Scenario, method = "bonferroni")
 print(dunn_test_duration)
 
 

@@ -29,8 +29,8 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
     * round_df.R:                                  
     * run_chi_squared.R:                           
     * source_rmd.R:                                
-    * stats_data_level1.R:                         
-    * stats_data_level2a.R:    
+    * stats_data_level1.R: Aggregation function to yield number of recaptured fish per scenario and fin cut                        
+    * stats_data_level2a.R: Aggregation function to yield number of recaptured fish per scenario   
   * not_functions: all scripts that are not functions are stored here
     * add_missing_folders.R: create necessary folders if they do not exist already
     * clean_data_forced.R: clean the FNAFP data

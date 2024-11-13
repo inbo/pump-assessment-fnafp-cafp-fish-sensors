@@ -13,7 +13,7 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
         * Pump_40Hz_Control_n_13: Data of sensors which were put right after the FNAFP operating at low rpm and functioned as control measurements
         * Pump_40Hz_n_64: Data of sensors which were put through the FNAFP operating at low rpm
         * Pump_47Hz_Control_n_15: Data of sensors which were put right after the FNAFP operating at high rpm and functioned as control measurements
-        * Pump_47Hz_n_51: Data of sensors which were put through the FNAFP operating at high rpm
+        * Pump_47Hz_n_51: Data of sensors which were put through the FNAFP operating at high rpm: https://doi.org/10.5281/zenodo.14152642
         * internal: The processed data (processing in bds_main.Rmd) is stored here. These data are then used for the analysis script (bds_analysis) and visualisation script (bds_visualisation.Rmd).
 * figures
   * additional: figures not used in the manuscript

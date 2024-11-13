@@ -1,5 +1,5 @@
 # FNAFP_CAFP_Fish_Mortality_Injury_BDS
-Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axial Flow Pumps (FNAFPs) and Conventional Axial Flow Pumps (CAFPs) of the Duivelsput pumping station (Vinderhoute, Oude Kale, Belgium). Barotrauma Detection Sensors (BDS) are also analyzed.
+Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axial Flow Pumps (FNAFPs) and Conventional Axial Flow Pumps (CAFPs) of the Duivelsput pumping station (Vinderhoute, Oude Kale, Belgium). Barotrauma Detection Sensors (BDS) are also analyzed. It is important to go through all Rmd files alphabetically at least ones as some necessary files will be created along the way. 
 ## Repository structure
 * data
    * fish

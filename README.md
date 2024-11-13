@@ -56,7 +56,6 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
 * a5_fish_power_analysis_FNAFP.Rmd: Power analysis to determine sample size based on mortality analysis for FNAFP
 * b1_bds_main.Rmd: Clean BDS timeseries and exploratory analysis
   * Metadata BDS: https://biorobotics.pages.taltech.ee/bds/en/description/
-  * Data BDS: https://drive.google.com/drive/folders/0ABLaelAKJifeUk9PVA
 * b2_bds_analysis.Rmd: Analysis BDS timeseries
 * b3_bds_visualisation.Rmd: Visualisation BDS timeseries
 * b4_bds_shear_stress.Rmd: Calculation of shear stress

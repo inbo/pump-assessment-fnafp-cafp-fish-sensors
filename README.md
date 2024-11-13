@@ -9,7 +9,7 @@ Assessment of the mortality and injury of fish passing the Fairbanks Nijhuis Axi
       * internal: The processed data (processing in fish_main.Rmd) is stored here. These data are then used for the different modelling scripts.
    * bds
       * external: the BDS data that is used as input for the files is stored here. A distinction is made between:
-        * Old_Axial_n_6: Data of sensors which were put through the CAFP
+        * Old_Axial_n_6: Data of sensors which were put through the CAFP: https://doi.org/10.5281/zenodo.14149410
         * Pump_40Hz_Control_n_13: Data of sensors which were put right after the FNAFP operating at low rpm and functioned as control measurements
         * Pump_40Hz_n_64: Data of sensors which were put through the FNAFP operating at low rpm
         * Pump_47Hz_Control_n_15: Data of sensors which were put right after the FNAFP operating at high rpm and functioned as control measurements

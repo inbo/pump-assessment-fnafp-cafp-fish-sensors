@@ -84,7 +84,7 @@ Methods: To identify the factors affecting injuries, multinomial models with as 
 
 ## Results
 
-### All three species + severity injury class
+### Roach + severity injury class
 
 ```{r include=FALSE}
 # multinom for injury (aggregated) OK
@@ -110,7 +110,7 @@ lpp <- melt(temp.pp, id.vars = c("Species_Pump_type_rpm", "Length"), value.name 
 ggplot(lpp, aes(x = Length, y = probability, colour = Species_Pump_type_rpm)) + geom_point() + facet_grid(variable ~., scales = "free")
 ```
 
-### Three species seperatly + severity injury class (without considering length)
+### Roach + severity injury class (without considering length)
 
 ```{r}
 # multinom for injury (aggregated) OK
@@ -145,7 +145,7 @@ ggarrange(l[[1]],labels=c("Roach"))
 dev.off()
 ```
 
-### Three species seperatly + severity injury class (with considering length if retained)
+### Roach + severity injury class (with considering length if retained)
 
 ```{r}
 # multinom for injury (aggregated) OK
@@ -203,7 +203,7 @@ dev.off()
 
 For bream there was no significant difference in the number of fish without an injury between different rotation regimes. Eventhough the number of injuries might not have been significantly different between the two rotation regimes. Severe injuries were with marginal signficance more likely at higher rotations, while sligth injuries were with marginal signifcance more likley at lower rotations. The same pattern was found for roach with the exception that the higher risk of severe injuries at higher rotations was not significant. For eel there were no severe injuries and the likeliness of slight injuries was not affectd by the number of rotations. 
 
-### Model assumptions for three species seperatly + severity injury class (with considering length if retained)
+### Model assumptions Roach + severity injury class (with considering length if retained)
 
 ```{r}
 # Check assumptions for multimod via logistic regressions
@@ -249,10 +249,10 @@ a
 dev.off()
 ```
 
-### All three species + injury class
+### Roach + injury class
 
 
-### Three species seperatly + injury class (with considering length if retained)
+### Roach + injury class (with considering length if retained)
 
 ```{r include=FALSE}
 # multinom for injury OK

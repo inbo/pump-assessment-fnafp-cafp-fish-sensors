@@ -15,7 +15,7 @@ source("./source/not_functions/libraries.R")
 ```
 
 ```{r}
-RUN=TRUE
+RUN=TRUE #if run is true than the power analysis will be performed, if run is false the power analysis will be skipped and the stored data will be used for the visualisation
 ```
 
 ```{r include=FALSE}

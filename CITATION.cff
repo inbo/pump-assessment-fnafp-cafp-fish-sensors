@@ -1,0 +1,40 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: pump-assessment-fnafp-cafp-fish-sensors
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Stijn
+    family-names: Bruneel
+    email: stijn.bruneel@inbo.be
+    affiliation: Research Institute for Nature and Forest
+    orcid: 'https://orcid.org/0000-0002-8226-8080'
+  - given-names: Sarah
+    family-names: Broos
+    email: sarah.broos@inbo.be
+    affiliation: Research Institute for Nature and Forest
+    orcid: 'https://orcid.org/0000-0001-9742-6224'
+  - given-names: Jeffrey
+    family-names: Tuhtan
+    email: jeffrey.tuhtan@taltech.ee
+    affiliation: >-
+      Department of Computer Systems, Tallinn University of
+      Technology
+    orcid: 'https://orcid.org/0000-0003-0832-7334'
+repository-code: >-
+  https://github.com/inbo/pump-assessment-fnafp-cafp-fish-sensors
+abstract: >-
+  Assessment of the mortality and injury of fish passing the
+  Fairbanks Nijhuis Axial Flow Pumps (FNAFPs) and
+  Conventional Axial Flow Pumps (CAFPs) of the Duivelsput
+  pumping station (Vinderhoute, Oude Kale, Belgium).
+  Barotrauma Detection Sensors (BDS) are also analyzed.
+keywords:
+  - fish
+  - axial pumps
+  - sensors
+license: MIT
